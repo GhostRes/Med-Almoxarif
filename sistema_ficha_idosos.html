@@ -1,0 +1,1059 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Ficha de Identificação - CASCI</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50, #3498db);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+            animation: shimmer 3s ease-in-out infinite;
+        }
+
+        @keyframes shimmer {
+
+            0%,
+            100% {
+                transform: rotate(0deg);
+            }
+
+            50% {
+                transform: rotate(180deg);
+            }
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+
+        .nav-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            padding: 20px;
+            background: rgba(52, 152, 219, 0.1);
+            border-bottom: 1px solid rgba(52, 152, 219, 0.2);
+        }
+
+        .nav-btn {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+        }
+
+        .nav-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(52, 152, 219, 0.4);
+        }
+
+        .nav-btn.active {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .form-col {
+            flex: 1;
+        }
+
+        .form-col-2 {
+            flex: 2;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 0.95rem;
+        }
+
+        input,
+        select,
+        textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e6ed;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+            transform: translateY(-1px);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .checkbox-group {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .checkbox-item input[type="checkbox"],
+        .checkbox-item input[type="radio"] {
+            width: auto;
+            margin: 0;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(46, 204, 113, 0.3);
+            margin-right: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(46, 204, 113, 0.4);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #95a5a6, #7f8c8d);
+            box-shadow: 0 4px 15px rgba(149, 165, 166, 0.3);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+            box-shadow: 0 4px 15px rgba(243, 156, 18, 0.3);
+        }
+
+        .section-title {
+            background: linear-gradient(135deg, #34495e, #2c3e50);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+
+        .idoso-card {
+            background: white;
+            border: 2px solid #e0e6ed;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .idoso-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            border-color: #3498db;
+        }
+
+        .idoso-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #ecf0f1;
+        }
+
+        .idoso-name {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #2c3e50;
+        }
+
+        .idoso-code {
+            background: linear-gradient(135deg, #9b59b6, #8e44ad);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .idoso-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+
+        .info-value {
+            color: #2c3e50;
+            font-weight: 500;
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .btn-small {
+            padding: 8px 15px;
+            font-size: 0.9rem;
+            border-radius: 15px;
+        }
+
+        .search-box {
+            margin-bottom: 25px;
+        }
+
+        .search-box input {
+            background: white;
+            border: 2px solid #e0e6ed;
+            border-radius: 25px;
+            padding: 15px 20px;
+            font-size: 1.1rem;
+            width: 100%;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #7f8c8d;
+        }
+
+        .empty-state h3 {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+
+        .success-message,
+        .error-message {
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .success-message {
+            background: #d4edda;
+            border: 2px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            border: 2px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                flex-direction: column;
+                gap: 0;
+            }
+
+            .nav-buttons {
+                flex-wrap: wrap;
+            }
+
+            .card-actions {
+                flex-direction: column;
+            }
+
+            .btn-small {
+                width: 100%;
+            }
+
+            .idoso-info {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Lar Cidade de Deus</h1>
+            <p>Sistema de Ficha de Identificação - Residentes</p>
+        </div>
+
+        <div class="nav-buttons">
+            <button class="nav-btn active" onclick="showSection('cadastro')">Cadastrar Idoso</button>
+            <button class="nav-btn" onclick="showSection('lista')">Lista de Idosos</button>
+        </div>
+
+        <div class="content">
+            <!-- Seção de Cadastro -->
+            <div id="cadastro" class="section active">
+                <div class="section-title">Cadastrar Novo Residente</div>
+
+                <div id="message-container"></div>
+
+                <form id="idoso-form">
+                    <input type="hidden" id="edit-id" value="">
+
+                    <!-- Dados Pessoais -->
+                    <div class="section-title">1. DADOS PESSOAIS</div>
+
+                    <div class="form-row">
+                        <div class="form-col-2">
+                            <label for="nome">Nome Completo:</label>
+                            <input type="text" id="nome" required>
+                        </div>
+                        <div class="form-col">
+                            <label for="codigo">Código:</label>
+                            <input type="number" id="codigo" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-col">
+                            <label for="cpf">CPF:</label>
+                            <input type="text" id="cpf" placeholder="000.000.000-00">
+                        </div>
+                        <div class="form-col">
+                            <label for="rg">RG:</label>
+                            <input type="text" id="rg" placeholder="0.000.000-0">
+                        </div>
+                        <div class="form-col">
+                            <label>Sexo:</label>
+                            <div class="checkbox-group">
+                                <div class="checkbox-item">
+                                    <input type="radio" id="sexo-f" name="sexo" value="F">
+                                    <label for="sexo-f">Feminino</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="radio" id="sexo-m" name="sexo" value="M">
+                                    <label for="sexo-m">Masculino</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-col">
+                            <label for="data-nascimento">Data de Nascimento:</label>
+                            <input type="date" id="data-nascimento">
+                        </div>
+                        <div class="form-col">
+                            <label for="idade">Idade:</label>
+                            <input type="number" id="idade" readonly>
+                        </div>
+                    </div>
+
+                    <!-- Informações de Saúde -->
+                    <div class="section-title">2. INFORMAÇÕES DE SAÚDE</div>
+
+                    <div class="form-row">
+                        <div class="form-col">
+                            <label for="peso">Peso (kg):</label>
+                            <input type="number" id="peso" step="0.1">
+                        </div>
+                        <div class="form-col">
+                            <label for="altura">Altura (cm):</label>
+                            <input type="number" id="altura">
+                        </div>
+                        <div class="form-col-2">
+                            <label for="cartao-sus">Cartão do SUS:</label>
+                            <input type="text" id="cartao-sus" placeholder="000 0000 0000 0000">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-col-2">
+                            <label for="convenio">Convênio:</label>
+                            <input type="text" id="convenio" placeholder="Titular/Plano">
+                        </div>
+                        <div class="form-col">
+                            <label>Grau de Dependência:</label>
+                            <div class="checkbox-group">
+                                <div class="checkbox-item">
+                                    <input type="radio" id="dep-1" name="dependencia" value="1">
+                                    <label for="dep-1">1°</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="radio" id="dep-2" name="dependencia" value="2">
+                                    <label for="dep-2">2°</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="radio" id="dep-3" name="dependencia" value="3">
+                                    <label for="dep-3">3°</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-col">
+                            <label for="deficiencias">Deficiências:</label>
+                            <textarea id="deficiencias"></textarea>
+                        </div>
+                        <div class="form-col">
+                            <label for="alergias">Alergias:</label>
+                            <textarea id="alergias"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="medicamentos">Medicamentos em uso:</label>
+                        <textarea id="medicamentos"></textarea>
+                    </div>
+
+                    <!-- Acompanhamento Clínico -->
+                    <div class="section-title">3. ACOMPANHAMENTO CLÍNICO</div>
+
+                    <div class="form-group">
+                        <label for="diagnostico">Diagnóstico:</label>
+                        <textarea id="diagnostico"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="historico-medico">Histórico Médico:</label>
+                        <textarea id="historico-medico"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="cuidados-especificos">Cuidados Específicos:</label>
+                        <textarea id="cuidados-especificos"></textarea>
+                    </div>
+
+                    <!-- Observações Adicionais -->
+                    <div class="section-title">4. OBSERVAÇÕES ADICIONAIS</div>
+
+                    <div class="form-group">
+                        <label for="observacoes">Observações:</label>
+                        <textarea id="observacoes" rows="5"></textarea>
+                    </div>
+
+                    <div style="text-align: center; margin-top: 30px;">
+                        <button type="submit" class="btn" id="submit-btn">Cadastrar Idoso</button>
+                        <button type="button" class="btn btn-secondary" onclick="clearForm()">Limpar Formulário</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Seção de Lista -->
+            <div id="lista" class="section">
+                <div class="section-title">Lista de Residentes</div>
+
+                <div class="search-box">
+                    <input type="text" id="search" placeholder="Buscar por nome, código ou CPF..."
+                        onkeyup="filterIdosos()">
+                </div>
+                <div class="form-row" style="margin-bottom: 20px;">
+                <div class="form-col">
+                    <label for="sortBy">Ordenar por:</label>
+                    <select id="sortBy" onchange="applySorting()">
+                        <option value="nome">Nome</option>
+                        <option value="codigo">Código</option>
+                        <option value="sexo">Sexo</option>
+                        <option value="idade">Idade</option>
+                    </select>
+                </div>
+                <div class="form-col">
+                    <label for="sortOrder">Ordem:</label>
+                    <select id="sortOrder" onchange="applySorting()">
+                        <option value="asc">Crescente</option>
+                        <option value="desc">Decrescente</option>
+                    </select>
+                </div>
+            </div>
+
+                <div id="idosos-list"></div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // Variáveis globais
+        let idosos = [];
+        let editingId = null;
+
+        // Carregar dados ao inicializar
+        document.addEventListener('DOMContentLoaded', function () {
+            loadIdosos();
+            setupEventListeners();
+        });
+
+        // Configurar event listeners
+        function setupEventListeners() {
+            // Auto-calcular idade
+            document.getElementById('data-nascimento').addEventListener('change', calculateAge);
+
+            // Submissão do formulário
+            document.getElementById('idoso-form').addEventListener('submit', handleSubmit);
+        }
+
+        // Calcular idade automaticamente
+        function calculateAge() {
+            const birthDate = new Date(document.getElementById('data-nascimento').value);
+            const today = new Date();
+            let age = today.getFullYear() - birthDate.getFullYear();
+            const monthDiff = today.getMonth() - birthDate.getMonth();
+
+            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+                age--;
+            }
+
+            document.getElementById('idade').value = age;
+        }
+
+        // Mostrar seção
+        function showSection(sectionName) {
+            // Remover active de todas as seções
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.remove('active');
+            });
+
+            // Remover active de todos os botões
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            // Ativar seção selecionada
+            document.getElementById(sectionName).classList.add('active');
+
+            // Ativar botão correspondente
+            event.target.classList.add('active');
+
+            // Carregar lista se necessário
+            if (sectionName === 'lista') {
+                displayIdosos();
+            }
+        }
+
+        // Submissão do formulário
+        function handleSubmit(e) {
+            e.preventDefault();
+
+            const formData = {
+                id: editingId || Date.now(),
+                nome: document.getElementById('nome').value,
+                codigo: document.getElementById('codigo').value,
+                cpf: document.getElementById('cpf').value,
+                rg: document.getElementById('rg').value,
+                sexo: document.querySelector('input[name="sexo"]:checked')?.value || '',
+                dataNascimento: document.getElementById('data-nascimento').value,
+                idade: document.getElementById('idade').value,
+                peso: document.getElementById('peso').value,
+                altura: document.getElementById('altura').value,
+                cartaoSus: document.getElementById('cartao-sus').value,
+                convenio: document.getElementById('convenio').value,
+                dependencia: document.querySelector('input[name="dependencia"]:checked')?.value || '',
+                deficiencias: document.getElementById('deficiencias').value,
+                alergias: document.getElementById('alergias').value,
+                medicamentos: document.getElementById('medicamentos').value,
+                diagnostico: document.getElementById('diagnostico').value,
+                historicoMedico: document.getElementById('historico-medico').value,
+                cuidadosEspecificos: document.getElementById('cuidados-especificos').value,
+                observacoes: document.getElementById('observacoes').value
+            };
+
+            if (editingId) {
+                updateIdoso(formData);
+            } else {
+                addIdoso(formData);
+            }
+        }
+
+        // Adicionar idoso
+        function addIdoso(idoso) {
+            // Verificar se código já existe
+            if (idosos.find(i => i.codigo === idoso.codigo)) {
+                showMessage('Erro: Já existe um idoso com este código!', 'error');
+                return;
+            }
+
+            idosos.push(idoso);
+            saveIdosos();
+            clearForm();
+            showMessage('Idoso cadastrado com sucesso!', 'success');
+        }
+
+        // Atualizar idoso
+        function updateIdoso(idoso) {
+            const index = idosos.findIndex(i => i.id === idoso.id);
+            if (index !== -1) {
+                idosos[index] = idoso;
+                saveIdosos();
+                clearForm();
+                editingId = null;
+                showMessage('Idoso atualizado com sucesso!', 'success');
+                document.getElementById('submit-btn').textContent = 'Cadastrar Idoso';
+            }
+        }
+
+        // Editar idoso
+        function editIdoso(id) {
+            const idoso = idosos.find(i => i.id === id);
+            if (!idoso) return;
+
+            editingId = id;
+
+            // Preencher formulário
+            document.getElementById('nome').value = idoso.nome || '';
+            document.getElementById('codigo').value = idoso.codigo || '';
+            document.getElementById('cpf').value = idoso.cpf || '';
+            document.getElementById('rg').value = idoso.rg || '';
+
+            if (idoso.sexo) {
+                document.querySelector(`input[name="sexo"][value="${idoso.sexo}"]`).checked = true;
+            }
+
+            document.getElementById('data-nascimento').value = idoso.dataNascimento || '';
+            document.getElementById('idade').value = idoso.idade || '';
+            document.getElementById('peso').value = idoso.peso || '';
+            document.getElementById('altura').value = idoso.altura || '';
+            document.getElementById('cartao-sus').value = idoso.cartaoSus || '';
+            document.getElementById('convenio').value = idoso.convenio || '';
+
+            if (idoso.dependencia) {
+                document.querySelector(`input[name="dependencia"][value="${idoso.dependencia}"]`).checked = true;
+            }
+
+            document.getElementById('deficiencias').value = idoso.deficiencias || '';
+            document.getElementById('alergias').value = idoso.alergias || '';
+            document.getElementById('medicamentos').value = idoso.medicamentos || '';
+            document.getElementById('diagnostico').value = idoso.diagnostico || '';
+            document.getElementById('historico-medico').value = idoso.historicoMedico || '';
+            document.getElementById('cuidados-especificos').value = idoso.cuidadosEspecificos || '';
+            document.getElementById('observacoes').value = idoso.observacoes || '';
+
+            document.getElementById('submit-btn').textContent = 'Atualizar Idoso';
+            showSection('cadastro');
+            document.querySelector('.nav-btn').classList.add('active');
+        }
+
+        // Remover idoso
+        function deleteIdoso(id) {
+            if (confirm('Tem certeza que deseja remover este idoso?')) {
+                idosos = idosos.filter(i => i.id !== id);
+                saveIdosos();
+                displayIdosos();
+                showMessage('Idoso removido com sucesso!', 'success');
+            }
+        }
+
+        // Limpar formulário
+        function clearForm() {
+            document.getElementById('idoso-form').reset();
+            editingId = null;
+            document.getElementById('submit-btn').textContent = 'Cadastrar Idoso';
+        }
+
+        // Filtrar idosos
+        function filterIdosos() {
+            const search = document.getElementById('search').value.toLowerCase();
+            const filtered = idosos.filter(idoso =>
+                idoso.nome.toLowerCase().includes(search) ||
+                idoso.codigo.toString().includes(search) ||
+                (idoso.cpf && idoso.cpf.toLowerCase().includes(search))
+            );
+            displayIdosos(filtered);
+        }
+
+        // Exibir lista de idosos
+        function displayIdosos(list = idosos) {
+            const container = document.getElementById('idosos-list');
+
+            if (list.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <h3>Nenhum idoso encontrado</h3>
+                        <p>Cadastre o primeiro idoso para começar.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = list.map(idoso => `
+                <div class="idoso-card">
+                    <div class="idoso-header">
+                        <div class="idoso-name">${idoso.nome}</div>
+                        <div class="idoso-code">Cód: ${idoso.codigo}</div>
+                    </div>
+                    
+                    <div class="idoso-info">
+                        <div class="info-item">
+                            <span class="info-label">CPF:</span>
+                            <span class="info-value">${idoso.cpf || 'Não informado'}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Idade:</span>
+                            <span class="info-value">${idoso.idade || 'Não informada'} anos</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Sexo:</span>
+                            <span class="info-value">${idoso.sexo === 'F' ? 'Feminino' : idoso.sexo === 'M' ? 'Masculino' : 'Não informado'}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Dependência:</span>
+                            <span class="info-value">${idoso.dependencia ? idoso.dependencia + '°' : 'Não informado'}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="card-actions">
+                        <button class="btn btn-warning btn-small" onclick="editIdoso(${idoso.id})">Editar</button>
+                        <button class="btn btn-small" onclick="generatePDF(${idoso.id})">Gerar PDF</button>
+                        <button class="btn btn-danger btn-small" onclick="deleteIdoso(${idoso.id})">Remover</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Gerar PDF
+        function generatePDF(id) {
+            const idoso = idosos.find(i => i.id === id);
+            if (!idoso) return;
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            // Cabeçalho
+            doc.setFontSize(16);
+            doc.setFont(undefined, 'bold');
+            doc.text('Lar Cidade de Deus', 105, 20, { align: 'center' });
+
+            doc.setFontSize(14);
+            doc.setFont(undefined, 'bold');
+            doc.text('FICHA DE IDENTIFICAÇÃO - RESIDENTE', 105, 30, { align: 'center' });
+
+            let yPosition = 40;
+
+            // 1. DADOS PESSOAIS
+            doc.setFontSize(12);
+            doc.setFont(undefined, 'bold');
+            doc.text('1. DADOS PESSOAIS', 20, yPosition);
+            yPosition += 10;
+
+            doc.setFont(undefined, 'normal');
+            doc.text(`Nome: ${idoso.nome}`, 20, yPosition);
+            doc.text(`Cod: ${idoso.codigo}`, 150, yPosition);
+            yPosition += 7;
+
+            doc.text(`CPF: ${idoso.cpf || 'Não informado'}`, 20, yPosition);
+            doc.text(`RG: ${idoso.rg || 'Não informado'}`, 80, yPosition);
+            doc.text(`Sexo: ${idoso.sexo === 'F' ? 'F(x) M( )' : idoso.sexo === 'M' ? 'F( ) M(x)' : 'F( ) M( )'}`, 140, yPosition);
+            yPosition += 7;
+
+            doc.text(`Data de Nascimento: ${idoso.dataNascimento || 'Não informada'}`, 20, yPosition);
+            doc.text(`Idade: ${idoso.idade || 'Não informada'} anos`, 120, yPosition);
+            yPosition += 15;
+
+            // 2. INFORMAÇÕES DE SAÚDE
+            doc.setFont(undefined, 'bold');
+            doc.text('2. INFORMAÇÕES DE SAÚDE', 20, yPosition);
+            yPosition += 10;
+
+            doc.setFont(undefined, 'normal');
+            doc.text(`Peso: ${idoso.peso || 'Não informado'}KG`, 20, yPosition);
+            doc.text(`Altura: ${idoso.altura || 'Não informada'}cm`, 80, yPosition);
+            yPosition += 7;
+
+            doc.text(`Cartão do SUS: ${idoso.cartaoSus || 'Não informado'}`, 20, yPosition);
+            yPosition += 7;
+
+            doc.text(`Convênio: ${idoso.convenio || 'Não informado'}`, 20, yPosition);
+            yPosition += 7;
+
+            const dependenciaText = idoso.dependencia === '1' ? '1°(x) 2°( ) 3°( )' :
+                idoso.dependencia === '2' ? '1°( ) 2°(x) 3°( )' :
+                    idoso.dependencia === '3' ? '1°( ) 2°( ) 3°(x)' :
+                        '1°( ) 2°( ) 3°( )';
+            doc.text(`Grau de Dependência: ${dependenciaText}`, 20, yPosition);
+            yPosition += 7;
+
+            doc.text(`Deficiências: ${idoso.deficiencias || 'Nenhuma'}`, 20, yPosition);
+            yPosition += 7;
+
+            doc.text(`Alergias: ${idoso.alergias || 'Nenhuma'}`, 20, yPosition);
+            yPosition += 7;
+
+            // Verificar se precisa de nova página
+            if (yPosition > 250) {
+                doc.addPage();
+                yPosition = 20;
+            }
+
+            const medicamentosLines = doc.splitTextToSize(`Medicamentos em uso: ${idoso.medicamentos || 'Nenhum'}`, 170);
+            doc.text(medicamentosLines, 20, yPosition);
+            yPosition += medicamentosLines.length * 5 + 10;
+
+            // 3. ACOMPANHAMENTO CLÍNICO
+            doc.setFont(undefined, 'bold');
+            doc.text('3. ACOMPANHAMENTO CLÍNICO', 20, yPosition);
+            yPosition += 10;
+
+            doc.setFont(undefined, 'normal');
+            const diagnosticoLines = doc.splitTextToSize(`Diagnóstico: ${idoso.diagnostico || 'Não informado'}`, 170);
+            doc.text(diagnosticoLines, 20, yPosition);
+            yPosition += diagnosticoLines.length * 5 + 5;
+
+            const historicoLines = doc.splitTextToSize(`Histórico Médico: ${idoso.historicoMedico || 'Não informado'}`, 170);
+            doc.text(historicoLines, 20, yPosition);
+            yPosition += historicoLines.length * 5 + 5;
+
+            const cuidadosLines = doc.splitTextToSize(`Cuidados Específicos: ${idoso.cuidadosEspecificos || 'Não informado'}`, 170);
+            doc.text(cuidadosLines, 20, yPosition);
+            yPosition += cuidadosLines.length * 5 + 10;
+
+            // 4. OBSERVAÇÕES ADICIONAIS
+            doc.setFont(undefined, 'bold');
+            doc.text('4. OBSERVAÇÕES ADICIONAIS', 20, yPosition);
+            yPosition += 10;
+
+            doc.setFont(undefined, 'normal');
+            const observacoesLines = doc.splitTextToSize(idoso.observacoes || 'Nenhuma observação adicional', 170);
+            doc.text(observacoesLines, 20, yPosition);
+
+            // Salvar PDF
+            doc.save(`Ficha_${idoso.nome.replace(/\s+/g, '_')}_${idoso.codigo}.pdf`);
+        }
+        // Função para aplicar ordenação
+        function applySorting() {
+            const sortBy = document.getElementById('sortBy').value;
+            const sortOrder = document.getElementById('sortOrder').value;
+
+            let sortedList = [...idosos]; // cópia da lista
+
+            sortedList.sort((a, b) => {
+                let valA = a[sortBy] ? a[sortBy].toString().toLowerCase() : '';
+                let valB = b[sortBy] ? b[sortBy].toString().toLowerCase() : '';
+
+                // Comparação numérica para idade e código
+                if (sortBy === 'idade' || sortBy === 'codigo') {
+                    valA = Number(valA) || 0;
+                    valB = Number(valB) || 0;
+                }
+
+                if (valA < valB) return sortOrder === 'asc' ? -1 : 1;
+                if (valA > valB) return sortOrder === 'asc' ? 1 : -1;
+                return 0;
+            });
+
+            displayIdosos(sortedList);
+        }
+
+        function filterIdosos() {
+            const search = document.getElementById('search').value.toLowerCase();
+            const filtered = idosos.filter(idoso =>
+                idoso.nome.toLowerCase().includes(search) ||
+                idoso.codigo.toString().includes(search) ||
+                (idoso.cpf && idoso.cpf.toLowerCase().includes(search))
+            );
+
+            // Exibir filtrados já ordenados
+            const sortBy = document.getElementById('sortBy')?.value || 'nome';
+            const sortOrder = document.getElementById('sortOrder')?.value || 'asc';
+
+            let sortedFiltered = [...filtered];
+            sortedFiltered.sort((a, b) => {
+                let valA = a[sortBy] ? a[sortBy].toString().toLowerCase() : '';
+                let valB = b[sortBy] ? b[sortBy].toString().toLowerCase() : '';
+
+                if (sortBy === 'idade' || sortBy === 'codigo') {
+                    valA = Number(valA) || 0;
+                    valB = Number(valB) || 0;
+                }
+
+                if (valA < valB) return sortOrder === 'asc' ? -1 : 1;
+                if (valA > valB) return sortOrder === 'asc' ? 1 : -1;
+                return 0;
+            });
+
+            displayIdosos(sortedFiltered);
+        }
+
+
+        // Salvar dados no armazenamento local
+        function saveIdosos() {
+            localStorage.setItem('idosos', JSON.stringify(idosos));
+            console.log('Dados salvos:', idosos);
+        }
+
+        // Carregar dados do armazenamento local
+        function loadIdosos() {
+            const saved = localStorage.getItem('idosos');
+            if (saved) {
+                idosos = JSON.parse(saved);
+                console.log('Dados carregados:', idosos);
+            } else {
+                idosos = [];
+                console.log('Nenhum dado encontrado, lista vazia iniciada.');
+            }
+        }
+
+        // Mostrar mensagem
+        function showMessage(message, type) {
+            const container = document.getElementById('message-container');
+            const messageClass = type === 'error' ? 'error-message' : 'success-message';
+
+            container.innerHTML = `
+                <div class="${messageClass}">
+                    ${message}
+                </div>
+            `;
+
+            // Remover mensagem após 5 segundos
+            setTimeout(() => {
+                container.innerHTML = '';
+            }, 5000);
+        }
+
+        // Dados de exemplo (para demonstração)
+        function loadExampleData() {
+            const exampleData = [
+                {
+                    id: 1,
+                    nome: 'Maria das Graças Oliveira da Silva',
+                    codigo: '83',
+                    cpf: '123.456.789-00',
+                    rg: '1.234.567-8',
+                    sexo: 'F',
+                    dataNascimento: '1940-05-15',
+                    idade: '83',
+                    peso: '65',
+                    altura: '165',
+                    cartaoSus: '123 4567 8901 2345',
+                    convenio: 'Unimed (Titular: Maria/Plano: 12345)',
+                    dependencia: '1',
+                    deficiencias: 'Mobilidade reduzida',
+                    alergias: 'Penicilina',
+                    medicamentos: 'Losartana 50mg - 1x ao dia\nOmeprazol 20mg - 1x ao dia',
+                    diagnostico: 'Hipertensão arterial, Gastrite',
+                    historicoMedico: 'Hipertensa há 10 anos, episódio de gastrite em 2020',
+                    cuidadosEspecificos: 'Monitoramento da pressão arterial diário',
+                    observacoes: 'Paciente colaborativa, sem problemas comportamentais'
+                }
+            ];
+
+            // Uncomment the line below to load example data
+            // idosos = exampleData;
+        }
+    </script>
+</body>
+
+</html>
