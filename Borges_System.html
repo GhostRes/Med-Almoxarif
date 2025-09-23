@@ -1,0 +1,1068 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema Caldo de Cana - Borges</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #4CAF50, #81C784);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .header h1 {
+            color: #2E7D32;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .tabs {
+            display: flex;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 10px;
+            margin-bottom: 20px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 15px 20px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            color: #666;
+        }
+
+        .tab-btn.active {
+            background: #4CAF50;
+            color: white;
+            transform: scale(1.05);
+        }
+
+        .tab-btn:hover:not(.active) {
+            background: rgba(76, 175, 80, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .tab-content {
+            display: none;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2E7D32;
+        }
+
+        input,
+        select,
+        textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #E8F5E8;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #4CAF50;
+            box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #4CAF50, #66BB6A);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin-right: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(76, 175, 80, 0.3);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #f44336, #ef5350);
+        }
+
+        .btn-danger:hover {
+            box-shadow: 0 8px 25px rgba(244, 67, 54, 0.3);
+        }
+
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: linear-gradient(135deg, #fff, #f8f9fa);
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card h3 {
+            color: #2E7D32;
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .card p {
+            color: #666;
+            font-weight: 600;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #4CAF50, #45a049);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #4CAF50;
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            color: #666;
+            font-weight: 600;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        th,
+        td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #E8F5E8;
+        }
+
+        th {
+            background: #4CAF50;
+            color: white;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+        }
+
+        tr:hover {
+            background: rgba(76, 175, 80, 0.05);
+        }
+
+        .two-columns {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .two-columns {
+                grid-template-columns: 1fr;
+            }
+
+            .tabs {
+                flex-direction: column;
+            }
+
+            .summary-cards {
+                grid-template-columns: 1fr;
+            }
+
+            .stats {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .filter-container {
+            background: rgba(255, 255, 255, 0.7);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .section {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+            animation: fadeIn 0.5s ease-in;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🥤 Caldo de Cana Borges</h1>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="openTab('vendas')">💰 Nova Venda</button>
+            <button class="tab-btn" onclick="openTab('despesas')">📝 Despesas</button>
+            <button class="tab-btn" onclick="openTab('historico')">📊 Histórico</button>
+            <button class="tab-btn" onclick="openTab('financeiro')">💸 Financeiro</button>
+            <button class="tab-btn" onclick="openTab('produtos')">🥤 Produtos</button>
+        </div>
+
+        <!-- Tab Nova Venda -->
+        <div id="vendas" class="tab-content active">
+            <h2>🛒 Registrar Nova Venda</h2>
+            <form id="vendaForm">
+                <div class="two-columns">
+                    <div>
+                        <div class="form-group">
+                            <label>Produto:</label>
+                            <select id="produto" required>
+                                <option value="">Selecione o produto</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Quantidade:</label>
+                            <input type="number" id="quantidade" min="1" value="1" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Forma de Pagamento:</label>
+                            <select id="formaPagamento" required>
+                                <option value="">Selecione</option>
+                                <option value="dinheiro">💵 Dinheiro</option>
+                                <option value="pix">📱 PIX</option>
+                                <option value="cartao">💳 Cartão</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="form-group">
+                            <label>Preço Unitário:</label>
+                            <input type="number" id="precoUnitario" step="0.01" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label>Total da Venda:</label>
+                            <input type="number" id="totalVenda" step="0.01" readonly
+                                style="font-size: 18px; font-weight: bold; color: #2E7D32;">
+                        </div>
+                        <div class="form-group">
+                            <label>Observações:</label>
+                            <input type="text" id="observacoes" placeholder="Opcional">
+                        </div>
+                    </div>
+                </div>
+                <button type="submit" class="btn">✅ Registrar Venda</button>
+            </form>
+        </div>
+
+        <!-- Tab Despesas -->
+        <div id="despesas" class="tab-content">
+            <h2>📝 Controle de Despesas</h2>
+
+            <div class="stats">
+                <div class="stat-card">
+                    <div class="stat-value" id="despesasHoje">R$ 0,00</div>
+                    <div class="stat-label">Despesas Hoje</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="despesasMes">R$ 0,00</div>
+                    <div class="stat-label">Despesas do Mês</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="totalDespesas">0</div>
+                    <div class="stat-label">Total de Despesas</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>Nova Despesa</h3>
+                <div id="despesaAlert"></div>
+                <form id="despesaForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Descrição</label>
+                            <input type="text" id="descricaoDespesa" required
+                                placeholder="Ex: Cana-de-açúcar, Gás, Manutenção">
+                        </div>
+                        <div class="form-group">
+                            <label>Categoria</label>
+                            <select id="categoriaDespesa" required>
+                                <option value="">Selecione</option>
+                                <option value="materia-prima">Matéria Prima</option>
+                                <option value="equipamentos">Equipamentos</option>
+                                <option value="manutencao">Manutenção</option>
+                                <option value="energia">Energia/Gás</option>
+                                <option value="outros">Outros</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Valor (R$)</label>
+                            <input type="number" id="valorDespesa" step="0.01" min="0" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Observações</label>
+                        <textarea id="observacoesDespesa" rows="3"
+                            placeholder="Informações adicionais (opcional)"></textarea>
+                    </div>
+                    <button type="submit" class="btn">Registrar Despesa</button>
+                </form>
+            </div>
+
+            <div class="card">
+                <h3>Últimas Despesas</h3>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Data/Hora</th>
+                                <th>Descrição</th>
+                                <th>Categoria</th>
+                                <th>Valor</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabelaDespesas">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab Histórico -->
+        <div id="historico" class="tab-content">
+            <h2>📊 Histórico de Vendas</h2>
+
+            <div class="filter-container">
+                <div class="two-columns">
+                    <div class="form-group">
+                        <label>Filtrar por Data:</label>
+                        <input type="date" id="filtroData">
+                    </div>
+                    <div class="form-group">
+                        <label>Filtrar por Produto:</label>
+                        <select id="filtroProduto">
+                            <option value="">Todos os produtos</option>
+                        </select>
+                    </div>
+                </div>
+                <button class="btn" onclick="aplicarFiltros()">🔍 Filtrar</button>
+                <button class="btn" onclick="limparFiltros()">🧹 Limpar</button>
+            </div>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Data/Hora</th>
+                            <th>Produto</th>
+                            <th>Qtd</th>
+                            <th>Preço Unit.</th>
+                            <th>Total</th>
+                            <th>Pagamento</th>
+                            <th>Obs</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabelaVendas">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Tab Financeiro -->
+        <div id="financeiro" class="tab-content">
+            <h2>💸 Controle Financeiro</h2>
+
+            <div class="summary-cards">
+                <div class="card">
+                    <h3 id="totalVendasDia">R$ 0,00</h3>
+                    <p>Vendas Hoje</p>
+                </div>
+                <div class="card">
+                    <h3 id="totalVendasMes">R$ 0,00</h3>
+                    <p>Vendas do Mês</p>
+                </div>
+                <div class="card">
+                    <h3 id="totalVendas">R$ 0,00</h3>
+                    <p>Total Geral</p>
+                </div>
+                <div class="card">
+                    <h3 id="totalItensVendidos">0</h3>
+                    <p>Itens Vendidos</p>
+                </div>
+            </div>
+
+            <h3>💳 Vendas por Forma de Pagamento (Hoje)</h3>
+            <div class="summary-cards">
+                <div class="card">
+                    <h3 id="totalDinheiro">R$ 0,00</h3>
+                    <p>💵 Dinheiro</p>
+                </div>
+                <div class="card">
+                    <h3 id="totalPix">R$ 0,00</h3>
+                    <p>📱 PIX</p>
+                </div>
+                <div class="card">
+                    <h3 id="totalCartao">R$ 0,00</h3>
+                    <p>💳 Cartão</p>
+                </div>
+            </div>
+
+            <h3>📈 Produtos Mais Vendidos</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Produto</th>
+                            <th>Quantidade Vendida</th>
+                            <th>Total Arrecadado</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabelaProdutosMaisVendidos">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Tab Produtos -->
+        <div id="produtos" class="tab-content">
+            <h2>🥤 Gerenciar Produtos</h2>
+
+            <form id="produtoForm">
+                <div class="two-columns">
+                    <div>
+                        <div class="form-group">
+                            <label>Nome do Produto:</label>
+                            <input type="text" id="nomeProduto" required placeholder="Ex: Caldo de Cana 300ml">
+                        </div>
+                    </div>
+                    <div>
+                        <div class="form-group">
+                            <label>Preço:</label>
+                            <input type="number" id="precoProduto" step="0.01" min="0" required placeholder="0.00">
+                        </div>
+                    </div>
+                </div>
+                <button type="submit" class="btn">➕ Adicionar Produto</button>
+            </form>
+
+            <h3 style="margin-top: 30px;">Lista de Produtos</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Produto</th>
+                            <th>Preço</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabelaProdutos">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Dados do sistema
+        let vendas = [];
+        let despesas = [];
+        let produtos = [
+            { id: 1, nome: "Caldo de Cana 300ml", preco: 3.50 },
+            { id: 2, nome: "Caldo de Cana 500ml", preco: 5.00 },
+            { id: 3, nome: "Caldo de Cana 1L", preco: 8.00 }
+        ];
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', function () {
+            carregarDados();
+            atualizarSelectProdutos();
+            atualizarTabelaProdutos();
+            atualizarFinanceiro();
+            atualizarHistorico();
+            atualizarDespesas();
+        });
+
+        // Gerenciamento de Tabs
+        function openTab(tabName) {
+            const tabs = document.querySelectorAll('.tab-content');
+            const buttons = document.querySelectorAll('.tab-btn');
+
+            tabs.forEach(tab => tab.classList.remove('active'));
+            buttons.forEach(btn => btn.classList.remove('active'));
+
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // Salvar dados no navegador - REMOVIDO localStorage
+        function salvarDados() {
+            // Dados são mantidos apenas em memória durante a sessão
+            console.log('Dados salvos em memória:', { vendas, produtos, despesas });
+        }
+
+        // Carregar dados do navegador - REMOVIDO localStorage
+        function carregarDados() {
+            // Dados são inicializados com valores padrão
+            console.log('Dados carregados:', { vendas, produtos, despesas });
+        }
+
+        // Gerenciamento de Produtos
+        document.getElementById('produtoForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const nome = document.getElementById('nomeProduto').value;
+            const preco = parseFloat(document.getElementById('precoProduto').value);
+
+            if (!nome || !preco || preco <= 0) {
+                mostrarAlerta('Por favor, preencha todos os campos corretamente!', 'error');
+                return;
+            }
+
+            const novoProduto = {
+                id: Date.now(),
+                nome: nome,
+                preco: preco
+            };
+
+            produtos.push(novoProduto);
+            salvarDados();
+            atualizarSelectProdutos();
+            atualizarTabelaProdutos();
+
+            document.getElementById('produtoForm').reset();
+            mostrarAlerta('Produto adicionado com sucesso!', 'success');
+        });
+
+        function removerProduto(id) {
+            if (confirm('Deseja realmente remover este produto?')) {
+                produtos = produtos.filter(p => p.id !== id);
+                salvarDados();
+                atualizarSelectProdutos();
+                atualizarTabelaProdutos();
+                mostrarAlerta('Produto removido com sucesso!', 'success');
+            }
+        }
+
+        function atualizarTabelaProdutos() {
+            const tabela = document.getElementById('tabelaProdutos');
+            tabela.innerHTML = '';
+
+            produtos.forEach(produto => {
+                const row = tabela.insertRow();
+                row.innerHTML = `
+                    <td>${produto.nome}</td>
+                    <td>R$ ${produto.preco.toFixed(2)}</td>
+                    <td>
+                        <button class="btn btn-danger" onclick="removerProduto(${produto.id})">🗑️ Remover</button>
+                    </td>
+                `;
+            });
+        }
+
+        function atualizarSelectProdutos() {
+            const selects = ['produto', 'filtroProduto'];
+
+            selects.forEach(selectId => {
+                const select = document.getElementById(selectId);
+                const valorAtual = select.value;
+
+                // Limpar opções existentes (exceto a primeira)
+                while (select.children.length > 1) {
+                    select.removeChild(select.lastChild);
+                }
+
+                produtos.forEach(produto => {
+                    const option = document.createElement('option');
+                    option.value = produto.id;
+                    option.textContent = `${produto.nome} - R$ ${produto.preco.toFixed(2)}`;
+                    select.appendChild(option);
+                });
+
+                select.value = valorAtual;
+            });
+        }
+
+        // Gerenciamento de Vendas
+        document.getElementById('produto').addEventListener('change', function () {
+            const produtoId = parseInt(this.value);
+            const produto = produtos.find(p => p.id === produtoId);
+
+            if (produto) {
+                document.getElementById('precoUnitario').value = produto.preco.toFixed(2);
+                calcularTotal();
+            }
+        });
+
+        document.getElementById('quantidade').addEventListener('input', calcularTotal);
+
+        function calcularTotal() {
+            const preco = parseFloat(document.getElementById('precoUnitario').value) || 0;
+            const quantidade = parseInt(document.getElementById('quantidade').value) || 0;
+            const total = preco * quantidade;
+            document.getElementById('totalVenda').value = total.toFixed(2);
+        }
+
+        document.getElementById('vendaForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const produtoId = parseInt(document.getElementById('produto').value);
+            const produto = produtos.find(p => p.id === produtoId);
+            const quantidade = parseInt(document.getElementById('quantidade').value);
+            const formaPagamento = document.getElementById('formaPagamento').value;
+            const observacoes = document.getElementById('observacoes').value;
+            const total = parseFloat(document.getElementById('totalVenda').value);
+
+            if (!produto || !quantidade || !formaPagamento) {
+                mostrarAlerta('Por favor, preencha todos os campos obrigatórios!', 'error');
+                return;
+            }
+
+            const novaVenda = {
+                id: Date.now(),
+                data: new Date(),
+                produto: produto.nome,
+                quantidade: quantidade,
+                precoUnitario: produto.preco,
+                total: total,
+                formaPagamento: formaPagamento,
+                observacoes: observacoes
+            };
+
+            vendas.push(novaVenda);
+            salvarDados();
+
+            // Reset form
+            document.getElementById('vendaForm').reset();
+            document.getElementById('precoUnitario').value = '';
+            document.getElementById('totalVenda').value = '';
+
+            atualizarFinanceiro();
+            atualizarHistorico();
+            mostrarAlerta('Venda registrada com sucesso!', 'success');
+        });
+
+        function removerVenda(id) {
+            if (confirm('Deseja realmente remover esta venda?')) {
+                vendas = vendas.filter(v => v.id !== id);
+                salvarDados();
+                atualizarFinanceiro();
+                atualizarHistorico();
+                mostrarAlerta('Venda removida com sucesso!', 'success');
+            }
+        }
+
+        // Gerenciamento de Despesas
+        document.getElementById('despesaForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const descricao = document.getElementById('descricaoDespesa').value;
+            const categoria = document.getElementById('categoriaDespesa').value;
+            const valor = parseFloat(document.getElementById('valorDespesa').value);
+            const observacoes = document.getElementById('observacoesDespesa').value;
+
+            if (!descricao || !categoria || !valor || valor <= 0) {
+                mostrarAlerta('Por favor, preencha todos os campos obrigatórios!', 'error');
+                return;
+            }
+
+            const novaDespesa = {
+                id: Date.now(),
+                data: new Date(),
+                descricao: descricao,
+                categoria: categoria,
+                valor: valor,
+                observacoes: observacoes
+            };
+
+            despesas.push(novaDespesa);
+            salvarDados();
+            atualizarDespesas();
+
+            document.getElementById('despesaForm').reset();
+            mostrarAlerta('Despesa registrada com sucesso!', 'success');
+        });
+
+        function removerDespesa(id) {
+            if (confirm('Deseja realmente remover esta despesa?')) {
+                despesas = despesas.filter(d => d.id !== id);
+                salvarDados();
+                atualizarDespesas();
+                mostrarAlerta('Despesa removida com sucesso!', 'success');
+            }
+        }
+
+        function atualizarDespesas() {
+            const hoje = new Date();
+            const inicioMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+
+            // Despesas de hoje
+            const despesasHoje = despesas.filter(despesa => {
+                const dataDespesa = new Date(despesa.data);
+                return dataDespesa.toDateString() === hoje.toDateString();
+            });
+
+            // Despesas do mês
+            const despesasMes = despesas.filter(despesa => {
+                const dataDespesa = new Date(despesa.data);
+                return dataDespesa >= inicioMes;
+            });
+
+            // Totais
+            const totalDespesasHoje = despesasHoje.reduce((sum, despesa) => sum + despesa.valor, 0);
+            const totalDespesasMes = despesasMes.reduce((sum, despesa) => sum + despesa.valor, 0);
+
+            // Atualizar elementos
+            document.getElementById('despesasHoje').textContent = `R$ ${totalDespesasHoje.toFixed(2)}`;
+            document.getElementById('despesasMes').textContent = `R$ ${totalDespesasMes.toFixed(2)}`;
+            document.getElementById('totalDespesas').textContent = despesas.length;
+
+            // Atualizar tabela
+            const tabela = document.getElementById('tabelaDespesas');
+            tabela.innerHTML = '';
+
+            const despesasOrdenadas = despesas.sort((a, b) => new Date(b.data) - new Date(a.data));
+
+            despesasOrdenadas.forEach(despesa => {
+                const row = tabela.insertRow();
+                const dataObj = new Date(despesa.data);
+                const dataFormatada = dataObj.toLocaleString('pt-BR');
+
+                const categorias = {
+                    'materia-prima': 'Matéria Prima',
+                    'equipamentos': 'Equipamentos',
+                    'manutencao': 'Manutenção',
+                    'energia': 'Energia/Gás',
+                    'outros': 'Outros'
+                };
+
+                row.innerHTML = `
+                    <td>${dataFormatada}</td>
+                    <td>${despesa.descricao}</td>
+                    <td>${categorias[despesa.categoria]}</td>
+                    <td>R$ ${despesa.valor.toFixed(2)}</td>
+                    <td>
+                        <button class="btn btn-danger" onclick="removerDespesa(${despesa.id})">🗑️</button>
+                    </td>
+                `;
+            });
+        }
+
+        // Atualizar histórico
+        function atualizarHistorico() {
+            const tabela = document.getElementById('tabelaVendas');
+            tabela.innerHTML = '';
+
+            const vendasOrdenadas = vendas.sort((a, b) => new Date(b.data) - new Date(a.data));
+
+            vendasOrdenadas.forEach(venda => {
+                const row = tabela.insertRow();
+                const dataObj = new Date(venda.data);
+                const dataFormatada = dataObj.toLocaleString('pt-BR');
+
+                const formasPagamento = {
+                    'dinheiro': '💵 Dinheiro',
+                    'pix': '📱 PIX',
+                    'cartao': '💳 Cartão'
+                };
+
+                row.innerHTML = `
+                    <td>${dataFormatada}</td>
+                    <td>${venda.produto}</td>
+                    <td>${venda.quantidade}</td>
+                    <td>R$ ${venda.precoUnitario.toFixed(2)}</td>
+                    <td>R$ ${venda.total.toFixed(2)}</td>
+                    <td>${formasPagamento[venda.formaPagamento]}</td>
+                    <td>${venda.observacoes || '-'}</td>
+                    <td>
+                        <button class="btn btn-danger" onclick="removerVenda(${venda.id})">🗑️</button>
+                    </td>
+                `;
+            });
+        }
+
+        // Filtros
+        function aplicarFiltros() {
+            const filtroData = document.getElementById('filtroData').value;
+            const filtroProduto = document.getElementById('filtroProduto').value;
+
+            const tabela = document.getElementById('tabelaVendas');
+            tabela.innerHTML = '';
+
+            let vendasFiltradas = vendas;
+
+            if (filtroData) {
+                vendasFiltradas = vendasFiltradas.filter(venda => {
+                    const dataVenda = new Date(venda.data).toISOString().split('T')[0];
+                    return dataVenda === filtroData;
+                });
+            }
+
+            if (filtroProduto) {
+                const produto = produtos.find(p => p.id == filtroProduto);
+                if (produto) {
+                    vendasFiltradas = vendasFiltradas.filter(venda => venda.produto === produto.nome);
+                }
+            }
+
+            vendasFiltradas.sort((a, b) => new Date(b.data) - new Date(a.data)).forEach(venda => {
+                const row = tabela.insertRow();
+                const dataObj = new Date(venda.data);
+                const dataFormatada = dataObj.toLocaleString('pt-BR');
+
+                const formasPagamento = {
+                    'dinheiro': '💵 Dinheiro',
+                    'pix': '📱 PIX',
+                    'cartao': '💳 Cartão'
+                };
+
+                row.innerHTML = `
+                    <td>${dataFormatada}</td>
+                    <td>${venda.produto}</td>
+                    <td>${venda.quantidade}</td>
+                    <td>R$ ${venda.precoUnitario.toFixed(2)}</td>
+                    <td>R$ ${venda.total.toFixed(2)}</td>
+                    <td>${formasPagamento[venda.formaPagamento]}</td>
+                    <td>${venda.observacoes || '-'}</td>
+                    <td>
+                        <button class="btn btn-danger" onclick="removerVenda(${venda.id})">🗑️</button>
+                    </td>
+                `;
+            });
+        }
+
+        function limparFiltros() {
+            document.getElementById('filtroData').value = '';
+            document.getElementById('filtroProduto').value = '';
+            atualizarHistorico();
+        }
+
+        // Atualizar financeiro
+        function atualizarFinanceiro() {
+            const hoje = new Date();
+            const inicioMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+
+            // Vendas de hoje
+            const vendasHoje = vendas.filter(venda => {
+                const dataVenda = new Date(venda.data);
+                return dataVenda.toDateString() === hoje.toDateString();
+            });
+
+            // Vendas do mês
+            const vendasMes = vendas.filter(venda => {
+                const dataVenda = new Date(venda.data);
+                return dataVenda >= inicioMes;
+            });
+
+            // Totais
+            const totalVendasDia = vendasHoje.reduce((sum, venda) => sum + venda.total, 0);
+            const totalVendasMes = vendasMes.reduce((sum, venda) => sum + venda.total, 0);
+            const totalVendasGeral = vendas.reduce((sum, venda) => sum + venda.total, 0);
+            const totalItens = vendas.reduce((sum, venda) => sum + venda.quantidade, 0);
+
+            // Pagamentos hoje
+            const totalDinheiro = vendasHoje.filter(v => v.formaPagamento === 'dinheiro').reduce((sum, v) => sum + v.total, 0);
+            const totalPix = vendasHoje.filter(v => v.formaPagamento === 'pix').reduce((sum, v) => sum + v.total, 0);
+            const totalCartao = vendasHoje.filter(v => v.formaPagamento === 'cartao').reduce((sum, v) => sum + v.total, 0);
+
+            // Atualizar elementos
+            document.getElementById('totalVendasDia').textContent = `R$ ${totalVendasDia.toFixed(2)}`;
+            document.getElementById('totalVendasMes').textContent = `R$ ${totalVendasMes.toFixed(2)}`;
+            document.getElementById('totalVendas').textContent = `R$ ${totalVendasGeral.toFixed(2)}`;
+            document.getElementById('totalItensVendidos').textContent = totalItens;
+
+            document.getElementById('totalDinheiro').textContent = `R$ ${totalDinheiro.toFixed(2)}`;
+            document.getElementById('totalPix').textContent = `R$ ${totalPix.toFixed(2)}`;
+            document.getElementById('totalCartao').textContent = `R$ ${totalCartao.toFixed(2)}`;
+
+            // Produtos mais vendidos
+            atualizarProdutosMaisVendidos();
+        }
+
+        function atualizarProdutosMaisVendidos() {
+            const estatisticas = {};
+
+            vendas.forEach(venda => {
+                if (!estatisticas[venda.produto]) {
+                    estatisticas[venda.produto] = {
+                        quantidade: 0,
+                        total: 0
+                    };
+                }
+                estatisticas[venda.produto].quantidade += venda.quantidade;
+                estatisticas[venda.produto].total += venda.total;
+            });
+
+            const produtosOrdenados = Object.entries(estatisticas)
+                .sort(([, a], [, b]) => b.quantidade - a.quantidade);
+
+            const tabela = document.getElementById('tabelaProdutosMaisVendidos');
+            tabela.innerHTML = '';
+
+            produtosOrdenados.forEach(([produto, dados]) => {
+                const row = tabela.insertRow();
+                row.innerHTML = `
+                    <td>${produto}</td>
+                    <td>${dados.quantidade}</td>
+                    <td>R$ ${dados.total.toFixed(2)}</td>
+                `;
+            });
+        }
+
+        function mostrarAlerta(mensagem, tipo) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${tipo}`;
+            alertDiv.textContent = mensagem;
+
+            document.querySelector('.container').insertBefore(alertDiv, document.querySelector('.tabs'));
+
+            setTimeout(() => {
+                if (alertDiv.parentNode) {
+                    alertDiv.remove();
+                }
+            }, 3000);
+        }
+    </script>
+</body>
+
+</html>
