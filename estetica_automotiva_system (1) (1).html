@@ -1,0 +1,2001 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Gestão - Estética Automotiva</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        /* Estilos para tela de login */
+        .login-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        .login-box {
+            background: white;
+            padding: 3rem;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            min-width: 350px;
+        }
+
+        .login-box h2 {
+            color: #333;
+            margin-bottom: 2rem;
+            font-size: 2rem;
+        }
+
+        .login-input {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid #e1e1e1;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .login-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .login-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 1rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .error-message {
+            color: #dc3545;
+            margin-top: 1rem;
+            font-weight: 600;
+        }
+
+        .main-content {
+            display: none;
+        }
+
+        .main-content.authenticated {
+            display: block;
+        }
+
+        .logout-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            z-index: 1000;
+        }
+
+        .logout-btn:hover {
+            background: #c82333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 10px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 20px 10px;
+        }
+
+        .header h1 {
+            color: white;
+            font-size: clamp(1.8em, 4vw, 2.5em);
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .header p {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: clamp(0.9em, 2vw, 1.1em);
+        }
+
+        .nav-tabs {
+            display: flex;
+            background: white;
+            border-radius: 15px 15px 0 0;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            flex-wrap: wrap;
+        }
+
+        .nav-tab {
+            flex: 1;
+            min-width: 120px;
+            padding: 12px 8px;
+            background: #f8f9fa;
+            border: none;
+            cursor: pointer;
+            font-size: clamp(0.8em, 2vw, 1em);
+            font-weight: 600;
+            transition: all 0.3s ease;
+            position: relative;
+            text-align: center;
+        }
+
+        .nav-tab.active {
+            background: white;
+            color: #667eea;
+        }
+
+        .nav-tab:hover {
+            background: #e9ecef;
+        }
+
+        .content {
+            background: white;
+            border-radius: 0 0 15px 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            padding: 15px;
+            min-height: 600px;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-row {
+            display: grid;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .form-row.cols-2 {
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        }
+
+        .form-row.cols-3 {
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        }
+
+        .form-row.cols-4 {
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #555;
+            font-size: clamp(0.9em, 2vw, 1em);
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: clamp(0.9em, 2vw, 1em);
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: clamp(0.9em, 2vw, 1em);
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin: 5px 5px 5px 0;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(40, 167, 69, 0.4);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #dc3545, #e83e8c);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(220, 53, 69, 0.4);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #ffc107, #fd7e14);
+            color: white;
+        }
+
+        .btn-warning:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(255, 193, 7, 0.4);
+        }
+
+        .card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border-left: 4px solid #667eea;
+        }
+
+        .card h3 {
+            margin-bottom: 15px;
+            color: #333;
+            font-size: clamp(1.1em, 3vw, 1.3em);
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .stat-card h3 {
+            font-size: clamp(1.5em, 4vw, 2em);
+            margin-bottom: 5px;
+        }
+
+        .stat-card p {
+            opacity: 0.9;
+            font-size: clamp(0.9em, 2vw, 1.1em);
+        }
+
+        .table-container {
+            overflow-x: auto;
+            margin-top: 20px;
+        }
+
+        .table {
+            width: 100%;
+            min-width: 600px;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .table th,
+        .table td {
+            padding: 12px 8px;
+            text-align: left;
+            border-bottom: 1px solid #e9ecef;
+            font-size: clamp(0.8em, 2vw, 0.95em);
+        }
+
+        .table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #555;
+            white-space: nowrap;
+        }
+
+        .table tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        .status {
+            padding: 4px 8px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .status.pendente {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status.concluido {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status.em-andamento {
+            background: #cce7ff;
+            color: #004085;
+        }
+
+        .status.agendado {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: clamp(0.9em, 2vw, 1em);
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-danger {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .search-bar {
+            margin-bottom: 20px;
+        }
+
+        .search-bar input {
+            width: 100%;
+            max-width: 400px;
+            padding: 10px 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 25px;
+            font-size: clamp(0.9em, 2vw, 1em);
+        }
+
+        .calendar-container {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .calendar-nav {
+            display: flex;
+            gap: 10px;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 2px;
+            background: #e9ecef;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .calendar-day {
+            background: white;
+            padding: 8px 4px;
+            min-height: 80px;
+            border: 1px solid transparent;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: clamp(0.8em, 2vw, 0.9em);
+        }
+
+        .calendar-day:hover {
+            background: #f8f9fa;
+        }
+
+        .calendar-day.other-month {
+            color: #ccc;
+        }
+
+        .calendar-day.today {
+            background: #667eea;
+            color: white;
+        }
+
+        .calendar-day.has-appointments {
+            background: #fff3cd;
+            border-color: #ffc107;
+        }
+
+        .day-header {
+            background: #f8f9fa;
+            font-weight: 600;
+            text-align: center;
+            padding: 10px;
+            font-size: clamp(0.8em, 2vw, 0.9em);
+        }
+
+        .appointment-dot {
+            width: 6px;
+            height: 6px;
+            background: #dc3545;
+            border-radius: 50%;
+            display: inline-block;
+            margin: 1px;
+        }
+
+        .time-slots {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .time-slot {
+            padding: 8px 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 6px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s ease;
+            font-size: clamp(0.8em, 2vw, 0.9em);
+        }
+
+        .time-slot:hover {
+            border-color: #667eea;
+        }
+
+        .time-slot.selected {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .time-slot.occupied {
+            background: #f8d7da;
+            color: #721c24;
+            cursor: not-allowed;
+        }
+
+        /* Responsividade específica */
+        @media (max-width: 768px) {
+            .container {
+                padding: 5px;
+            }
+
+            .content {
+                padding: 10px;
+            }
+
+            .nav-tab {
+                padding: 10px 6px;
+                font-size: 0.85em;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .btn {
+                width: 100%;
+                margin: 5px 0;
+            }
+
+            .table th,
+            .table td {
+                padding: 8px 4px;
+            }
+
+            .calendar-day {
+                min-height: 60px;
+                padding: 4px 2px;
+            }
+
+            .time-slots {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .stats {
+                grid-template-columns: 1fr;
+            }
+
+            .nav-tabs {
+                border-radius: 10px 10px 0 0;
+            }
+
+            .nav-tab {
+                padding: 8px 4px;
+                font-size: 0.8em;
+            }
+
+            .calendar-day {
+                min-height: 50px;
+                padding: 2px 1px;
+            }
+
+            .time-slots {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Melhorias de acessibilidade */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                transition: none !important;
+                animation: none !important;
+            }
+        }
+
+        /* Modo escuro para dispositivos que preferem */
+        @media (prefers-color-scheme: dark) {
+            .card {
+                background: #2d3748;
+                color: #e2e8f0;
+            }
+
+            .table {
+                background: #2d3748;
+                color: #e2e8f0;
+            }
+
+            .table th {
+                background: #4a5568;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Tela de Login -->
+    <div id="loginContainer" class="login-container">
+        <div class="login-box">
+            <h2>Turbo Clean</h2>
+            <h2>🔒 Acesso ao Sistema</h2>
+            <input type="password" id="senhaInput" class="login-input" placeholder="Digite a senha" maxlength="50">
+            <button onclick="verificarSenha()" class="login-btn">Entrar</button>
+            <div id="erroLogin" class="error-message"></div>
+            <p style="margin-top: 2rem; color: #666; font-size: 0.9rem;">
+                💡 Senha padrão: "12345"
+            </p>
+        </div>
+    </div>
+
+    <!-- Botão de Logout -->
+    <button id="logoutBtn" onclick="logout()" class="logout-btn" style="display: none;">Sair</button>
+
+    <!-- Conteúdo Principal -->
+    <div id="mainContent" class="main-content">
+        <div class="container">
+            <div class="header">
+                <h1>Turbo Clean</h1>
+                <p>Sistema completo de gestão para sua empresa</p>
+            </div>
+
+            <div class="nav-tabs">
+                <button class="nav-tab active" onclick="switchTab('dashboard')">Dashboard</button>
+                <button class="nav-tab" onclick="switchTab('agendamentos')">Agenda</button>
+                <button class="nav-tab" onclick="switchTab('lavagens')">Lavagens</button>
+                <button class="nav-tab" onclick="switchTab('financeiro')">Financeiro</button>
+                <button class="nav-tab" onclick="switchTab('estoque')">Estoque</button>
+            </div>
+
+            <div class="content">
+                <!-- Dashboard -->
+                <div id="dashboard" class="tab-content active">
+                    <h2>Dashboard - Visão Geral</h2>
+                    <div class="stats">
+                        <div class="stat-card">
+                            <h3 id="totalLavagens">0</h3>
+                            <p>Lavagens Hoje</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3 id="receitaHoje">R$ 0,00</h3>
+                            <p>Receita Hoje</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3 id="totalAgendamentos">0</h3>
+                            <p>Agendamentos</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3 id="totalProdutos">0</h3>
+                            <p>Produtos Estoque</p>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h3>Próximos Agendamentos</h3>
+                        <div class="table-container">
+                            <table class="table" id="proximosAgendamentos">
+                                <thead>
+                                    <tr>
+                                        <th>Data/Hora</th>
+                                        <th>Cliente</th>
+                                        <th>Serviço</th>
+                                        <th>Status</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h3>Últimas Lavagens</h3>
+                        <div class="table-container">
+                            <table class="table" id="ultimasLavagens">
+                                <thead>
+                                    <tr>
+                                        <th>Cliente</th>
+                                        <th>Veículo</th>
+                                        <th>Serviço</th>
+                                        <th>Status</th>
+                                        <th>Valor</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Agendamentos -->
+                <div id="agendamentos" class="tab-content">
+                    <h2>Gestão de Agendamentos</h2>
+
+                    <div class="card">
+                        <h3>Novo Agendamento</h3>
+                        <form id="formAgendamento">
+                            <div class="form-row cols-2">
+                                <div class="form-group">
+                                    <label>Cliente</label>
+                                    <input type="text" id="clienteAgenda">
+                                </div>
+                                <div class="form-group">
+                                    <label>Telefone</label>
+                                    <input type="text" id="telefoneAgenda">
+                                </div>
+                            </div>
+                            <div class="form-row cols-2">
+                                <div class="form-group">
+                                    <label>Veículo</label>
+                                    <input type="text" id="veiculoAgenda" placeholder="Ex: Honda Civic 2020" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Placa</label>
+                                    <input type="text" id="placaAgenda" placeholder="ABC-1234">
+                                </div>
+                            </div>
+                            <div class="form-row cols-3">
+                                <div class="form-group">
+                                    <label>Data</label>
+                                    <input type="date" id="dataAgendamento" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Horário</label>
+                                    <select id="horarioAgendamento" required>
+                                        <option value="">Selecione</option>
+                                        <option value="08:00">08:00</option>
+                                        <option value="08:30">08:30</option>
+                                        <option value="09:00">09:00</option>
+                                        <option value="09:30">09:30</option>
+                                        <option value="10:00">10:00</option>
+                                        <option value="10:30">10:30</option>
+                                        <option value="11:00">11:00</option>
+                                        <option value="11:30">11:30</option>
+                                        <option value="13:00">13:00</option>
+                                        <option value="13:30">13:30</option>
+                                        <option value="14:00">14:00</option>
+                                        <option value="14:30">14:30</option>
+                                        <option value="15:00">15:00</option>
+                                        <option value="15:30">15:30</option>
+                                        <option value="16:00">16:00</option>
+                                        <option value="16:30">16:30</option>
+                                        <option value="17:00">17:00</option>
+                                        <option value="17:30">17:30</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Tipo de Serviço</label>
+                                    <select id="tipoServicoAgenda" required>
+                                        <option value="">Selecione</option>
+                                        <option value="Lavagem Simples">Lavagem Simples - R$ 15,00</option>
+                                        <option value="Lavagem Completa">Lavagem Completa - R$ 25,00</option>
+                                        <option value="Enceramento">Enceramento - R$ 35,00</option>
+                                        <option value="Lavagem + Cera">Lavagem + Cera - R$ 45,00</option>
+                                        <option value="Detalhamento">Detalhamento Completo - R$ 80,00</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Observações</label>
+                                <textarea id="observacoesAgenda" rows="3"></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Agendar</button>
+                        </form>
+                    </div>
+
+                    <div class="calendar-container">
+                        <div class="calendar-header">
+                            <h3 id="currentMonth">Janeiro 2024</h3>
+                            <div class="calendar-nav">
+                                <button class="btn btn-primary" onclick="previousMonth()">‹ Anterior</button>
+                                <button class="btn btn-primary" onclick="nextMonth()">Próximo ›</button>
+                            </div>
+                        </div>
+                        <div class="calendar-grid" id="calendar">
+                            <!-- Calendário será gerado via JS -->
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h3>Agendamentos</h3>
+                        <div class="search-bar">
+                            <input type="text" id="searchAgendamentos" placeholder="Buscar agendamentos...">
+                        </div>
+                        <div class="table-container">
+                            <table class="table" id="tabelaAgendamentos">
+                                <thead>
+                                    <tr>
+                                        <th>Data/Hora</th>
+                                        <th>Cliente</th>
+                                        <th>Veículo</th>
+                                        <th>Serviço</th>
+                                        <th>Status</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lavagens -->
+                <div id="lavagens" class="tab-content">
+                    <h2>Gestão de Lavagens</h2>
+
+                    <div class="card">
+                        <h3>Nova Lavagem</h3>
+                        <form id="formLavagem">
+                            <div class="form-row cols-2">
+                                <div class="form-group">
+                                    <label>Cliente</label>
+                                    <input type="text" id="cliente">
+                                </div>
+                                <div class="form-group">
+                                    <label>Telefone</label>
+                                    <input type="text" id="telefone">
+                                </div>
+                            </div>
+                            <div class="form-row cols-2">
+                                <div class="form-group">
+                                    <label>Veículo</label>
+                                    <input type="text" id="veiculo" placeholder="Ex: Honda Civic 2020" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Placa</label>
+                                    <input type="text" id="placa" placeholder="ABC-1234">
+                                </div>
+                            </div>
+                            <div class="form-row cols-2">
+                                <div class="form-group">
+                                    <label>Tipo de Serviço</label>
+                                    <select id="tipoServico" required>
+                                        <option value="">Selecione</option>
+                                        <option value="Lavagem Simples">Lavagem Simples - R$ 15,00</option>
+                                        <option value="Lavagem Completa">Lavagem Completa - R$ 25,00</option>
+                                        <option value="Enceramento">Enceramento - R$ 35,00</option>
+                                        <option value="Lavagem + Cera">Lavagem + Cera - R$ 45,00</option>
+                                        <option value="Detalhamento">Detalhamento Completo - R$ 80,00</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Valor (R$)</label>
+                                    <input type="number" id="valor" step="0.01" required>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Observações</label>
+                                <textarea id="observacoes" rows="3"></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Cadastrar Lavagem</button>
+                        </form>
+                    </div>
+
+                    <div class="card">
+                        <h3>Lavagens do Dia</h3>
+                        <div class="search-bar">
+                            <input type="text" id="searchLavagens"
+                                placeholder="Buscar por cliente, veículo ou placa...">
+                        </div>
+                        <div class="table-container">
+                            <table class="table" id="tabelaLavagens">
+                                <thead>
+                                    <tr>
+                                        <th>Cliente</th>
+                                        <th>Veículo</th>
+                                        <th>Serviço</th>
+                                        <th>Status</th>
+                                        <th>Valor</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Financeiro -->
+                <div id="financeiro" class="tab-content">
+                    <h2>Controle Financeiro</h2>
+
+                    <div class="stats">
+                        <div class="stat-card">
+                            <h3 id="receitaDiaria">R$ 0,00</h3>
+                            <p>Receita do Dia</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3 id="receitaSemanal">R$ 0,00</h3>
+                            <p>Receita da Semana</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3 id="receitaMensal">R$ 0,00</h3>
+                            <p>Receita do Mês</p>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h3>Adicionar Despesa</h3>
+                        <form id="formDespesa">
+                            <div class="form-row cols-3">
+                                <div class="form-group">
+                                    <label>Descrição</label>
+                                    <input type="text" id="descricaoDespesa" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Valor (R$)</label>
+                                    <input type="number" id="valorDespesa" step="0.01" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Categoria</label>
+                                    <select id="categoriaDespesa" required>
+                                        <option value="Produtos">Produtos</option>
+                                        <option value="Equipamentos">Equipamentos</option>
+                                        <option value="Manutenção">Manutenção</option>
+                                        <option value="Outros">Outros</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-danger">Adicionar Despesa</button>
+                        </form>
+                    </div>
+
+                    <div class="card">
+                        <h3>Histórico Financeiro</h3>
+                        <div class="table-container">
+                            <table class="table" id="tabelaFinanceiro">
+                                <thead>
+                                    <tr>
+                                        <th>Data</th>
+                                        <th>Tipo</th>
+                                        <th>Descrição</th>
+                                        <th>Valor</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Estoque -->
+                <div id="estoque" class="tab-content">
+                    <h2>Controle de Estoque</h2>
+
+                    <div class="card">
+                        <h3>Adicionar Produto</h3>
+                        <form id="formProduto">
+                            <div class="form-row cols-2">
+                                <div class="form-group">
+                                    <label>Nome do Produto</label>
+                                    <input type="text" id="nomeProduto">
+                                </div>
+                                <div class="form-group">
+                                    <label>Categoria</label>
+                                    <select id="categoriaProduto" required>
+                                        <option value="Shampoo">Shampoo</option>
+                                        <option value="Cera">Cera</option>
+                                        <option value="Desengraxante">Desengraxante</option>
+                                        <option value="Pneu">Pneu</option>
+                                        <option value="Acessórios">Acessórios</option>
+                                        <option value="Outros">Outros</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-row cols-3">
+                                <div class="form-group">
+                                    <label>Quantidade</label>
+                                    <input type="number" id="quantidadeProduto" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Preço Unitário (R$)</label>
+                                    <input type="number" id="precoProduto" step="0.01" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Estoque Mínimo</label>
+                                    <input type="number" id="estoqueMinimo" value="5" required>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-success">Adicionar Produto</button>
+                        </form>
+                    </div>
+
+                    <div class="card">
+                        <h3>Produtos em Estoque</h3>
+                        <div class="search-bar">
+                            <input type="text" id="searchProdutos" placeholder="Buscar produtos...">
+                        </div>
+                        <div class="table-container">
+                            <table class="table" id="tabelaEstoque">
+                                <thead>
+                                    <tr>
+                                        <th>Produto</th>
+                                        <th>Categoria</th>
+                                        <th>Quantidade</th>
+                                        <th>Preço Unit.</th>
+                                        <th>Total</th>
+                                        <th>Status</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <footer>
+            <p style="text-align: center;">Desenvolvido por <a href="https://www.instagram.com/fabiocbd/">Fábio
+                    Diniz</a>
+            </p>
+        </footer>
+
+        <script>
+            // Dados globais
+            let lavagens = JSON.parse(localStorage.getItem('lavagens')) || [];
+            let produtos = JSON.parse(localStorage.getItem('produtos')) || [];
+            let financeiro = JSON.parse(localStorage.getItem('financeiro')) || [];
+            let agendamentos = JSON.parse(localStorage.getItem('agendamentos')) || [];
+
+            // Variáveis do calendário
+            let currentDate = new Date();
+            let selectedDate = null;
+
+            // Sistema de autenticação
+            const SENHA_SISTEMA = "12345"; // Altere para sua senha
+
+            function verificarSenha() {
+                const senhaInput = document.getElementById('senhaInput');
+                const erroLogin = document.getElementById('erroLogin');
+                const senhaDigitada = senhaInput.value.trim();
+
+                if (senhaDigitada === SENHA_SISTEMA) {
+                    // Senha correta - mostrar sistema
+                    document.getElementById('loginContainer').style.display = 'none';
+                    document.getElementById('mainContent').classList.add('authenticated');
+                    document.getElementById('logoutBtn').style.display = 'block';
+                    erroLogin.textContent = '';
+                    senhaInput.value = '';
+                } else {
+                    // Senha incorreta
+                    erroLogin.textContent = '❌ Senha incorreta. Tente novamente.';
+                    senhaInput.value = '';
+                    senhaInput.focus();
+                }
+            }
+
+            function logout() {
+                if (confirm('Deseja sair do sistema?')) {
+                    document.getElementById('loginContainer').style.display = 'flex';
+                    document.getElementById('mainContent').classList.remove('authenticated');
+                    document.getElementById('logoutBtn').style.display = 'none';
+                    document.getElementById('senhaInput').focus();
+                }
+            }
+
+            // Event listener para Enter na senha
+            document.addEventListener('DOMContentLoaded', function () {
+                document.getElementById('senhaInput').addEventListener('keypress', function (e) {
+                    if (e.key === 'Enter') {
+                        verificarSenha();
+                    }
+                });
+
+                // Focar no campo de senha ao carregar
+                document.getElementById('senhaInput').focus();
+
+                // ... resto do código de inicialização existente ...
+            });
+
+            // Inicialização
+            document.addEventListener('DOMContentLoaded', function () {
+                // Definir data mínima para hoje
+                document.getElementById('dataAgendamento').min = new Date().toISOString().split('T')[0];
+
+                atualizarDashboard();
+                carregarLavagens();
+                carregarEstoque();
+                carregarFinanceiro();
+                carregarAgendamentos();
+                gerarCalendario();
+
+                // Event listeners
+                document.getElementById('formLavagem').addEventListener('submit', adicionarLavagem);
+                document.getElementById('formProduto').addEventListener('submit', adicionarProduto);
+                document.getElementById('formDespesa').addEventListener('submit', adicionarDespesa);
+                document.getElementById('formAgendamento').addEventListener('submit', adicionarAgendamento);
+                document.getElementById('tipoServico').addEventListener('change', atualizarValor);
+                document.getElementById('tipoServicoAgenda').addEventListener('change', atualizarValorAgenda);
+                document.getElementById('searchLavagens').addEventListener('input', filtrarLavagens);
+                document.getElementById('searchProdutos').addEventListener('input', filtrarProdutos);
+                document.getElementById('searchAgendamentos').addEventListener('input', filtrarAgendamentos);
+                document.getElementById('dataAgendamento').addEventListener('change', verificarHorariosDisponiveis);
+            });
+
+            // Funções de navegação
+            function switchTab(tabName) {
+                // Remover classe active de todas as abas
+                document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+                // Adicionar classe active na aba selecionada
+                event.target.classList.add('active');
+                document.getElementById(tabName).classList.add('active');
+
+                // Atualizar dados específicos da aba
+                if (tabName === 'dashboard') {
+                    atualizarDashboard();
+                } else if (tabName === 'agendamentos') {
+                    gerarCalendario();
+                    carregarAgendamentos();
+                }
+            }
+
+            // Funções de Agendamento
+            function adicionarAgendamento(e) {
+                e.preventDefault();
+
+                const data = document.getElementById('dataAgendamento').value;
+                const horario = document.getElementById('horarioAgendamento').value;
+
+                // Verificar se já existe agendamento para o mesmo horário
+                const agendamentoExistente = agendamentos.find(a =>
+                    a.data === data && a.horario === horario && a.status !== 'Cancelado'
+                );
+
+                if (agendamentoExistente) {
+                    mostrarAlerta('Já existe um agendamento para este horário!', 'danger');
+                    return;
+                }
+
+                const agendamento = {
+                    id: Date.now(),
+                    cliente: document.getElementById('clienteAgenda').value,
+                    telefone: document.getElementById('telefoneAgenda').value,
+                    veiculo: document.getElementById('veiculoAgenda').value,
+                    placa: document.getElementById('placaAgenda').value,
+                    data: data,
+                    horario: horario,
+                    tipoServico: document.getElementById('tipoServicoAgenda').value,
+                    observacoes: document.getElementById('observacoesAgenda').value,
+                    status: 'Agendado',
+                    dataCriacao: new Date().toISOString()
+                };
+
+                agendamentos.push(agendamento);
+                salvarDados();
+                carregarAgendamentos();
+                gerarCalendario();
+                atualizarDashboard();
+                document.getElementById('formAgendamento').reset();
+
+                mostrarAlerta('Agendamento criado com sucesso!', 'success');
+            }
+
+            function carregarAgendamentos() {
+                const tbody = document.querySelector('#tabelaAgendamentos tbody');
+                tbody.innerHTML = '';
+
+                const agendamentosOrdenados = [...agendamentos]
+                    .sort((a, b) => {
+                        const dataA = new Date(a.data + 'T' + a.horario);
+                        const dataB = new Date(b.data + 'T' + b.horario);
+                        return dataA - dataB;
+                    });
+
+                agendamentosOrdenados.forEach(agendamento => {
+                    const tr = document.createElement('tr');
+                    const dataFormatada = new Date(agendamento.data).toLocaleDateString('pt-BR');
+
+                    tr.innerHTML = `
+                    <td>${dataFormatada} ${agendamento.horario}</td>
+                    <td>${agendamento.cliente}</td>
+                    <td>${agendamento.veiculo}</td>
+                    <td>${agendamento.tipoServico}</td>
+                    <td><span class="status ${agendamento.status.toLowerCase()}">${agendamento.status}</span></td>
+                    <td>
+                        ${agendamento.status === 'Agendado' ?
+                            `<button class="btn btn-success" onclick="iniciarAtendimento(${agendamento.id})">Iniciar</button>
+                             <button class="btn btn-danger" onclick="cancelarAgendamento(${agendamento.id})">Cancelar</button>` :
+                            `<button class="btn btn-primary" onclick="reagendarAgendamento(${agendamento.id})" 
+                                     ${agendamento.status === 'Concluído' ? 'disabled' : ''}>Reagendar</button>`
+                        }
+                    </td>
+                `;
+                    tbody.appendChild(tr);
+                });
+
+                // Carregar próximos agendamentos no dashboard
+                carregarProximosAgendamentos();
+            }
+
+            function carregarProximosAgendamentos() {
+                const tbody = document.querySelector('#proximosAgendamentos tbody');
+                tbody.innerHTML = '';
+
+                const hoje = new Date();
+                const proximosAgendamentos = agendamentos
+                    .filter(a => {
+                        const dataAgendamento = new Date(a.data + 'T' + a.horario);
+                        return dataAgendamento >= hoje && a.status === 'Agendado';
+                    })
+                    .sort((a, b) => {
+                        const dataA = new Date(a.data + 'T' + a.horario);
+                        const dataB = new Date(b.data + 'T' + b.horario);
+                        return dataA - dataB;
+                    })
+                    .slice(0, 5);
+
+                proximosAgendamentos.forEach(agendamento => {
+                    const tr = document.createElement('tr');
+                    const dataFormatada = new Date(agendamento.data).toLocaleDateString('pt-BR');
+
+                    tr.innerHTML = `
+                    <td>${dataFormatada} ${agendamento.horario}</td>
+                    <td>${agendamento.cliente}</td>
+                    <td>${agendamento.tipoServico}</td>
+                    <td><span class="status ${agendamento.status.toLowerCase()}">${agendamento.status}</span></td>
+                    <td>
+                        <button class="btn btn-success" onclick="iniciarAtendimento(${agendamento.id})">Iniciar</button>
+                    </td>
+                `;
+                    tbody.appendChild(tr);
+                });
+            }
+
+            function iniciarAtendimento(id) {
+                const agendamento = agendamentos.find(a => a.id === id);
+                if (agendamento) {
+                    // Criar lavagem baseada no agendamento
+                    const precos = {
+                        'Lavagem Simples': 15.00,
+                        'Lavagem Completa': 25.00,
+                        'Enceramento': 35.00,
+                        'Lavagem + Cera': 45.00,
+                        'Detalhamento': 80.00
+                    };
+
+                    const lavagem = {
+                        id: Date.now(),
+                        cliente: agendamento.cliente,
+                        telefone: agendamento.telefone,
+                        veiculo: agendamento.veiculo,
+                        placa: agendamento.placa,
+                        tipoServico: agendamento.tipoServico,
+                        valor: precos[agendamento.tipoServico] || 0,
+                        observacoes: agendamento.observacoes,
+                        status: 'Em Andamento',
+                        data: new Date().toISOString(),
+                        agendamentoId: id
+                    };
+
+                    lavagens.push(lavagem);
+                    agendamento.status = 'Em Andamento';
+
+                    salvarDados();
+                    carregarAgendamentos();
+                    carregarLavagens();
+                    atualizarDashboard();
+
+                    mostrarAlerta('Atendimento iniciado!', 'success');
+                }
+            }
+
+            function cancelarAgendamento(id) {
+                if (confirm('Tem certeza que deseja cancelar este agendamento?')) {
+                    const agendamento = agendamentos.find(a => a.id === id);
+                    if (agendamento) {
+                        agendamento.status = 'Cancelado';
+                        salvarDados();
+                        carregarAgendamentos();
+                        gerarCalendario();
+                        atualizarDashboard();
+                        mostrarAlerta('Agendamento cancelado!', 'success');
+                    }
+                }
+            }
+
+            function reagendarAgendamento(id) {
+                const agendamento = agendamentos.find(a => a.id === id);
+                if (agendamento) {
+                    const novaData = prompt('Nova data (YYYY-MM-DD):', agendamento.data);
+                    const novoHorario = prompt('Novo horário (HH:MM):', agendamento.horario);
+
+                    if (novaData && novoHorario) {
+                        // Verificar se já existe agendamento para o novo horário
+                        const conflito = agendamentos.find(a =>
+                            a.id !== id && a.data === novaData && a.horario === novoHorario && a.status !== 'Cancelado'
+                        );
+
+                        if (conflito) {
+                            mostrarAlerta('Já existe um agendamento para este horário!', 'danger');
+                            return;
+                        }
+
+                        agendamento.data = novaData;
+                        agendamento.horario = novoHorario;
+                        agendamento.status = 'Agendado';
+
+                        salvarDados();
+                        carregarAgendamentos();
+                        gerarCalendario();
+                        mostrarAlerta('Agendamento reagendado!', 'success');
+                    }
+                }
+            }
+
+            function filtrarAgendamentos() {
+                const busca = document.getElementById('searchAgendamentos').value.toLowerCase();
+                const linhas = document.querySelectorAll('#tabelaAgendamentos tbody tr');
+
+                linhas.forEach(linha => {
+                    const texto = linha.textContent.toLowerCase();
+                    linha.style.display = texto.includes(busca) ? '' : 'none';
+                });
+            }
+
+            function verificarHorariosDisponiveis() {
+                const dataSelecionada = document.getElementById('dataAgendamento').value;
+                const selectHorario = document.getElementById('horarioAgendamento');
+
+                // Reset all options
+                Array.from(selectHorario.options).forEach(option => {
+                    if (option.value) {
+                        option.disabled = false;
+                        option.style.color = '';
+                    }
+                });
+
+                // Disable occupied time slots
+                const agendamentosDia = agendamentos.filter(a =>
+                    a.data === dataSelecionada && a.status !== 'Cancelado'
+                );
+
+                agendamentosDia.forEach(agendamento => {
+                    const option = selectHorario.querySelector(`option[value="${agendamento.horario}"]`);
+                    if (option) {
+                        option.disabled = true;
+                        option.style.color = '#ccc';
+                        option.textContent = option.textContent.replace(' (Ocupado)', '') + ' (Ocupado)';
+                    }
+                });
+            }
+
+            function atualizarValorAgenda() {
+                const select = document.getElementById('tipoServicoAgenda');
+
+                const precos = {
+                    'Lavagem Simples': 15.00,
+                    'Lavagem Completa': 25.00,
+                    'Enceramento': 35.00,
+                    'Lavagem + Cera': 45.00,
+                    'Detalhamento': 80.00
+                };
+
+                // Apenas para referência, não há campo valor no agendamento
+            }
+
+            // Funções do Calendário
+            function gerarCalendario() {
+                const calendar = document.getElementById('calendar');
+                calendar.innerHTML = '';
+
+                const year = currentDate.getFullYear();
+                const month = currentDate.getMonth();
+
+                // Atualizar título do mês
+                const monthNames = [
+                    'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+                    'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+                ];
+                document.getElementById('currentMonth').textContent = `${monthNames[month]} ${year}`;
+
+                // Cabeçalho dos dias da semana
+                const dayHeaders = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+                dayHeaders.forEach(day => {
+                    const dayElement = document.createElement('div');
+                    dayElement.className = 'day-header';
+                    dayElement.textContent = day;
+                    calendar.appendChild(dayElement);
+                });
+
+                // Primeiro dia do mês
+                const firstDay = new Date(year, month, 1);
+                const lastDay = new Date(year, month + 1, 0);
+                const startDate = new Date(firstDay);
+                startDate.setDate(startDate.getDate() - firstDay.getDay());
+
+                // Gerar dias do calendário
+                for (let i = 0; i < 42; i++) {
+                    const currentDay = new Date(startDate);
+                    currentDay.setDate(startDate.getDate() + i);
+
+                    const dayElement = document.createElement('div');
+                    dayElement.className = 'calendar-day';
+                    dayElement.textContent = currentDay.getDate();
+
+                    // Verificar se é de outro mês
+                    if (currentDay.getMonth() !== month) {
+                        dayElement.classList.add('other-month');
+                    }
+
+                    // Verificar se é hoje
+                    const today = new Date();
+                    if (currentDay.toDateString() === today.toDateString()) {
+                        dayElement.classList.add('today');
+                    }
+
+                    // Verificar se tem agendamentos
+                    const dateString = currentDay.toISOString().split('T')[0];
+                    const agendamentosDia = agendamentos.filter(a =>
+                        a.data === dateString && a.status !== 'Cancelado'
+                    );
+
+                    if (agendamentosDia.length > 0) {
+                        dayElement.classList.add('has-appointments');
+                        agendamentosDia.forEach(() => {
+                            const dot = document.createElement('span');
+                            dot.className = 'appointment-dot';
+                            dayElement.appendChild(dot);
+                        });
+                    }
+
+                    // Adicionar evento de clique
+                    dayElement.addEventListener('click', () => {
+                        document.getElementById('dataAgendamento').value = dateString;
+                        verificarHorariosDisponiveis();
+                    });
+
+                    calendar.appendChild(dayElement);
+                }
+            }
+
+            function previousMonth() {
+                currentDate.setMonth(currentDate.getMonth() - 1);
+                gerarCalendario();
+            }
+
+            function nextMonth() {
+                currentDate.setMonth(currentDate.getMonth() + 1);
+                gerarCalendario();
+            }
+
+            // Funções de Lavagem (atualizadas)
+            function adicionarLavagem(e) {
+                e.preventDefault();
+
+                const lavagem = {
+                    id: Date.now(),
+                    cliente: document.getElementById('cliente').value,
+                    telefone: document.getElementById('telefone').value,
+                    veiculo: document.getElementById('veiculo').value,
+                    placa: document.getElementById('placa').value,
+                    tipoServico: document.getElementById('tipoServico').value,
+                    valor: parseFloat(document.getElementById('valor').value),
+                    observacoes: document.getElementById('observacoes').value,
+                    status: 'Em Andamento',
+                    data: new Date().toISOString()
+                };
+
+                lavagens.push(lavagem);
+
+                // Adicionar receita ao financeiro
+                financeiro.push({
+                    id: Date.now() + 1,
+                    data: new Date().toISOString(),
+                    tipo: 'Receita',
+                    descricao: `Lavagem - ${lavagem.cliente} (${lavagem.tipoServico})`,
+                    valor: lavagem.valor
+                });
+
+                salvarDados();
+                carregarLavagens();
+                atualizarDashboard();
+                document.getElementById('formLavagem').reset();
+
+                mostrarAlerta('Lavagem cadastrada com sucesso!', 'success');
+            }
+
+            function atualizarValor() {
+                const select = document.getElementById('tipoServico');
+                const valor = document.getElementById('valor');
+
+                const precos = {
+                    'Lavagem Simples': 15.00,
+                    'Lavagem Completa': 25.00,
+                    'Enceramento': 35.00,
+                    'Lavagem + Cera': 45.00,
+                    'Detalhamento': 80.00
+                };
+
+                if (precos[select.value]) {
+                    valor.value = precos[select.value];
+                }
+            }
+
+            function carregarLavagens() {
+                const tbody = document.querySelector('#tabelaLavagens tbody');
+                tbody.innerHTML = '';
+
+                const hoje = new Date().toDateString();
+                const lavagensHoje = lavagens.filter(l => new Date(l.data).toDateString() === hoje);
+
+                lavagensHoje.forEach(lavagem => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                    <td>${lavagem.cliente}</td>
+                    <td>${lavagem.veiculo}</td>
+                    <td>${lavagem.tipoServico}</td>
+                    <td><span class="status ${lavagem.status.toLowerCase().replace(' ', '-')}">${lavagem.status}</span></td>
+                    <td>R$ ${lavagem.valor.toFixed(2)}</td>
+                    <td>
+                        <button class="btn btn-success" onclick="finalizarLavagem(${lavagem.id})" 
+                                ${lavagem.status === 'Concluído' ? 'disabled' : ''}>
+                            ${lavagem.status === 'Concluído' ? 'Finalizada' : 'Finalizar'}
+                        </button>
+                    </td>
+                `;
+                    tbody.appendChild(tr);
+                });
+            }
+
+            function finalizarLavagem(id) {
+                const lavagem = lavagens.find(l => l.id === id);
+                if (lavagem) {
+                    lavagem.status = 'Concluído';
+
+                    // Se veio de um agendamento, atualizar status do agendamento
+                    if (lavagem.agendamentoId) {
+                        const agendamento = agendamentos.find(a => a.id === lavagem.agendamentoId);
+                        if (agendamento) {
+                            agendamento.status = 'Concluído';
+                        }
+                    }
+
+                    salvarDados();
+                    carregarLavagens();
+                    carregarAgendamentos();
+                    atualizarDashboard();
+                    mostrarAlerta('Lavagem finalizada!', 'success');
+                }
+            }
+
+            function filtrarLavagens() {
+                const busca = document.getElementById('searchLavagens').value.toLowerCase();
+                const linhas = document.querySelectorAll('#tabelaLavagens tbody tr');
+
+                linhas.forEach(linha => {
+                    const texto = linha.textContent.toLowerCase();
+                    linha.style.display = texto.includes(busca) ? '' : 'none';
+                });
+            }
+
+            // Funções de Produto/Estoque (sem alterações)
+            function adicionarProduto(e) {
+                e.preventDefault();
+
+                const produto = {
+                    id: Date.now(),
+                    nome: document.getElementById('nomeProduto').value,
+                    categoria: document.getElementById('categoriaProduto').value,
+                    quantidade: parseInt(document.getElementById('quantidadeProduto').value),
+                    preco: parseFloat(document.getElementById('precoProduto').value),
+                    estoqueMinimo: parseInt(document.getElementById('estoqueMinimo').value),
+                    data: new Date().toISOString()
+                };
+
+                produtos.push(produto);
+
+                // Adicionar despesa ao financeiro
+                financeiro.push({
+                    id: Date.now() + 1,
+                    data: new Date().toISOString(),
+                    tipo: 'Despesa',
+                    descricao: `Compra de produtos - ${produto.nome}`,
+                    valor: produto.quantidade * produto.preco
+                });
+
+                salvarDados();
+                carregarEstoque();
+                atualizarDashboard();
+                document.getElementById('formProduto').reset();
+
+                mostrarAlerta('Produto adicionado com sucesso!', 'success');
+            }
+
+            function carregarEstoque() {
+                const tbody = document.querySelector('#tabelaEstoque tbody');
+                tbody.innerHTML = '';
+
+                produtos.forEach(produto => {
+                    const tr = document.createElement('tr');
+                    const status = produto.quantidade <= produto.estoqueMinimo ? 'Baixo' : 'OK';
+                    const statusClass = status === 'Baixo' ? 'status pendente' : 'status concluido';
+
+                    tr.innerHTML = `
+                    <td>${produto.nome}</td>
+                    <td>${produto.categoria}</td>
+                    <td>${produto.quantidade}</td>
+                    <td>R$ ${produto.preco.toFixed(2)}</td>
+                    <td>R$ ${(produto.quantidade * produto.preco).toFixed(2)}</td>
+                    <td><span class="${statusClass}">${status}</span></td>
+                    <td>
+                        <button class="btn btn-primary" onclick="editarQuantidade(${produto.id})">Editar</button>
+                        <button class="btn btn-danger" onclick="removerProduto(${produto.id})">Remover</button>
+                    </td>
+                `;
+                    tbody.appendChild(tr);
+                });
+            }
+
+            function editarQuantidade(id) {
+                const produto = produtos.find(p => p.id === id);
+                if (produto) {
+                    const novaQuantidade = prompt('Nova quantidade:', produto.quantidade);
+                    if (novaQuantidade !== null && novaQuantidade !== '') {
+                        produto.quantidade = parseInt(novaQuantidade);
+                        salvarDados();
+                        carregarEstoque();
+                        mostrarAlerta('Quantidade atualizada!', 'success');
+                    }
+                }
+            }
+
+            function removerProduto(id) {
+                if (confirm('Tem certeza que deseja remover este produto?')) {
+                    produtos = produtos.filter(p => p.id !== id);
+                    salvarDados();
+                    carregarEstoque();
+                    mostrarAlerta('Produto removido!', 'success');
+                }
+            }
+
+            function filtrarProdutos() {
+                const busca = document.getElementById('searchProdutos').value.toLowerCase();
+                const linhas = document.querySelectorAll('#tabelaEstoque tbody tr');
+
+                linhas.forEach(linha => {
+                    const texto = linha.textContent.toLowerCase();
+                    linha.style.display = texto.includes(busca) ? '' : 'none';
+                });
+            }
+
+            // Funções Financeiro (sem alterações)
+            function adicionarDespesa(e) {
+                e.preventDefault();
+
+                const despesa = {
+                    id: Date.now(),
+                    data: new Date().toISOString(),
+                    tipo: 'Despesa',
+                    descricao: document.getElementById('descricaoDespesa').value,
+                    valor: parseFloat(document.getElementById('valorDespesa').value),
+                    categoria: document.getElementById('categoriaDespesa').value
+                };
+
+                financeiro.push(despesa);
+                salvarDados();
+                carregarFinanceiro();
+                atualizarDashboard();
+                document.getElementById('formDespesa').reset();
+
+                mostrarAlerta('Despesa adicionada!', 'success');
+            }
+
+            function carregarFinanceiro() {
+                const tbody = document.querySelector('#tabelaFinanceiro tbody');
+                tbody.innerHTML = '';
+
+                const financeiroOrdenado = [...financeiro].sort((a, b) => new Date(b.data) - new Date(a.data));
+
+                financeiroOrdenado.slice(0, 20).forEach(item => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                    <td>${new Date(item.data).toLocaleDateString('pt-BR')}</td>
+                    <td><span class="status ${item.tipo === 'Receita' ? 'concluido' : 'pendente'}">${item.tipo}</span></td>
+                    <td>${item.descricao}</td>
+                    <td class="${item.tipo === 'Receita' ? 'text-success' : 'text-danger'}">
+                        ${item.tipo === 'Receita' ? '+' : '-'} R$ ${item.valor.toFixed(2)}
+                    </td>
+                `;
+                    tbody.appendChild(tr);
+                });
+
+                // Atualizar estatísticas financeiras
+                atualizarEstatisticasFinanceiras();
+            }
+
+            function atualizarEstatisticasFinanceiras() {
+                const hoje = new Date();
+                const inicioDia = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
+                const inicioSemana = new Date(hoje.getTime() - (hoje.getDay() * 24 * 60 * 60 * 1000));
+                const inicioMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+
+                const receitaDiaria = calcularReceita(inicioDia);
+                const receitaSemanal = calcularReceita(inicioSemana);
+                const receitaMensal = calcularReceita(inicioMes);
+
+                document.getElementById('receitaDiaria').textContent = `R$ ${receitaDiaria.toFixed(2)}`;
+                document.getElementById('receitaSemanal').textContent = `R$ ${receitaSemanal.toFixed(2)}`;
+                document.getElementById('receitaMensal').textContent = `R$ ${receitaMensal.toFixed(2)}`;
+            }
+
+            function calcularReceita(dataInicio) {
+                return financeiro
+                    .filter(item => new Date(item.data) >= dataInicio)
+                    .reduce((total, item) => {
+                        return total + (item.tipo === 'Receita' ? item.valor : -item.valor);
+                    }, 0);
+            }
+
+            // Funções do Dashboard (atualizadas)
+            function atualizarDashboard() {
+                const hoje = new Date().toDateString();
+
+                // Lavagens hoje
+                const lavagensHoje = lavagens.filter(l => new Date(l.data).toDateString() === hoje);
+                document.getElementById('totalLavagens').textContent = lavagensHoje.length;
+
+                // Receita hoje
+                const receitaHoje = lavagensHoje.reduce((total, l) => total + l.valor, 0);
+                document.getElementById('receitaHoje').textContent = `R$ ${receitaHoje.toFixed(2)}`;
+
+                // Total agendamentos ativos
+                const agendamentosAtivos = agendamentos.filter(a => a.status === 'Agendado').length;
+                document.getElementById('totalAgendamentos').textContent = agendamentosAtivos;
+
+                // Total produtos
+                document.getElementById('totalProdutos').textContent = produtos.length;
+
+                // Últimas lavagens
+                carregarUltimasLavagens();
+
+                // Próximos agendamentos
+                carregarProximosAgendamentos();
+            }
+
+            function carregarUltimasLavagens() {
+                const tbody = document.querySelector('#ultimasLavagens tbody');
+                tbody.innerHTML = '';
+
+                const ultimasLavagens = [...lavagens]
+                    .sort((a, b) => new Date(b.data) - new Date(a.data))
+                    .slice(0, 5);
+
+                ultimasLavagens.forEach(lavagem => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                    <td>${lavagem.cliente}</td>
+                    <td>${lavagem.veiculo}</td>
+                    <td>${lavagem.tipoServico}</td>
+                    <td><span class="status ${lavagem.status.toLowerCase().replace(' ', '-')}">${lavagem.status}</span></td>
+                    <td>R$ ${lavagem.valor.toFixed(2)}</td>
+                `;
+                    tbody.appendChild(tr);
+                });
+            }
+
+            // Funções auxiliares
+            function salvarDados() {
+                localStorage.setItem('lavagens', JSON.stringify(lavagens));
+                localStorage.setItem('produtos', JSON.stringify(produtos));
+                localStorage.setItem('financeiro', JSON.stringify(financeiro));
+                localStorage.setItem('agendamentos', JSON.stringify(agendamentos));
+            }
+
+            function mostrarAlerta(mensagem, tipo) {
+                const alerta = document.createElement('div');
+                alerta.className = `alert alert-${tipo}`;
+                alerta.textContent = mensagem;
+
+                const container = document.querySelector('.content');
+                container.insertBefore(alerta, container.firstChild);
+
+                setTimeout(() => {
+                    alerta.remove();
+                }, 3000);
+            }
+
+            // Adicionar alguns dados de exemplo se não houver dados
+            if (lavagens.length === 0 && produtos.length === 0 && agendamentos.length === 0) {
+                // Produtos exemplo
+                produtos = [
+                    {
+                        id: 1,
+                        nome: 'Shampoo Neutro 5L',
+                        categoria: 'Shampoo',
+                        quantidade: 3,
+                        preco: 25.90,
+                        estoqueMinimo: 2,
+                        data: new Date().toISOString()
+                    },
+                    {
+                        id: 2,
+                        nome: 'Cera Cristalizadora',
+                        categoria: 'Cera',
+                        quantidade: 8,
+                        preco: 35.00,
+                        estoqueMinimo: 3,
+                        data: new Date().toISOString()
+                    },
+                    {
+                        id: 3,
+                        nome: 'Desengraxante',
+                        categoria: 'Desengraxante',
+                        quantidade: 2,
+                        preco: 18.50,
+                        estoqueMinimo: 5,
+                        data: new Date().toISOString()
+                    }
+                ];
+
+                // Agendamentos exemplo
+                const amanha = new Date();
+                amanha.setDate(amanha.getDate() + 1);
+                const depoisAmanha = new Date();
+                depoisAmanha.setDate(depoisAmanha.getDate() + 2);
+
+                agendamentos = [
+                    {
+                        id: 1,
+                        cliente: 'Carlos Oliveira',
+                        telefone: '(11) 77777-7777',
+                        veiculo: 'Ford Ka 2018',
+                        placa: 'DEF-9876',
+                        data: amanha.toISOString().split('T')[0],
+                        horario: '09:00',
+                        tipoServico: 'Lavagem Completa',
+                        observacoes: 'Cliente preferencial',
+                        status: 'Agendado',
+                        dataCriacao: new Date().toISOString()
+                    },
+                    {
+                        id: 2,
+                        cliente: 'Ana Costa',
+                        telefone: '(11) 66666-6666',
+                        veiculo: 'Volkswagen Gol 2021',
+                        placa: 'GHI-5432',
+                        data: depoisAmanha.toISOString().split('T')[0],
+                        horario: '14:30',
+                        tipoServico: 'Enceramento',
+                        observacoes: 'Carro novo',
+                        status: 'Agendado',
+                        dataCriacao: new Date().toISOString()
+                    }
+                ];
+
+                // Lavagens exemplo
+                lavagens = [
+                    {
+                        id: 1,
+                        cliente: 'João Silva',
+                        telefone: '(11) 99999-9999',
+                        veiculo: 'Honda Civic 2020',
+                        placa: 'ABC-1234',
+                        tipoServico: 'Lavagem Completa',
+                        valor: 25.00,
+                        observacoes: '',
+                        status: 'Concluído',
+                        data: new Date().toISOString()
+                    },
+                    {
+                        id: 2,
+                        cliente: 'Maria Santos',
+                        telefone: '(11) 88888-8888',
+                        veiculo: 'Toyota Corolla 2019',
+                        placa: 'XYZ-5678',
+                        tipoServico: 'Enceramento',
+                        valor: 35.00,
+                        observacoes: 'Cliente VIP',
+                        status: 'Em Andamento',
+                        data: new Date().toISOString()
+                    }
+                ];
+
+                // Financeiro exemplo
+                financeiro = [
+                    {
+                        id: 1,
+                        data: new Date().toISOString(),
+                        tipo: 'Receita',
+                        descricao: 'Lavagem - João Silva (Lavagem Completa)',
+                        valor: 25.00
+                    },
+                    {
+                        id: 2,
+                        data: new Date().toISOString(),
+                        tipo: 'Despesa',
+                        descricao: 'Compra de produtos - Shampoo Neutro 5L',
+                        valor: 77.70
+                    }
+                ];
+
+                salvarDados();
+            }
+
+            // Função para notificações de agendamentos próximos
+            function verificarAgendamentosProximos() {
+                const agora = new Date();
+                const em30min = new Date(agora.getTime() + 30 * 60000);
+
+                const agendamentosProximos = agendamentos.filter(a => {
+                    if (a.status !== 'Agendado') return false;
+
+                    const dataHoraAgendamento = new Date(a.data + 'T' + a.horario);
+                    return dataHoraAgendamento <= em30min && dataHoraAgendamento > agora;
+                });
+
+                if (agendamentosProximos.length > 0) {
+                    const nomes = agendamentosProximos.map(a => a.cliente).join(', ');
+                    mostrarAlerta(`Atenção! Agendamento(s) próximo(s): ${nomes}`, 'warning');
+                }
+            }
+
+            // Verificar agendamentos próximos a cada 5 minutos
+            setInterval(verificarAgendamentosProximos, 5 * 60000);
+
+            // Verificar na inicialização
+            setTimeout(verificarAgendamentosProximos, 2000);
+
+            // Função para backup de dados
+            function exportarDados() {
+                const dados = {
+                    lavagens,
+                    produtos,
+                    financeiro,
+                    agendamentos,
+                    dataExportacao: new Date().toISOString()
+                };
+
+                const dataStr = JSON.stringify(dados, null, 2);
+                const dataBlob = new Blob([dataStr], { type: 'application/json' });
+
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(dataBlob);
+                link.download = `backup-estetica-automotiva-${new Date().toISOString().split('T')[0]}.json`;
+                link.click();
+            }
+
+            // Função para importar dados
+            function importarDados(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    try {
+                        const dados = JSON.parse(e.target.result);
+
+                        if (confirm('Isso irá substituir todos os dados atuais. Continuar?')) {
+                            if (dados.lavagens) lavagens = dados.lavagens;
+                            if (dados.produtos) produtos = dados.produtos;
+                            if (dados.financeiro) financeiro = dados.financeiro;
+                            if (dados.agendamentos) agendamentos = dados.agendamentos;
+
+                            salvarDados();
+                            location.reload();
+                        }
+                    } catch (error) {
+                        mostrarAlerta('Erro ao importar dados. Arquivo inválido.', 'danger');
+                    }
+                };
+                reader.readAsText(file);
+            }
+        </script>
+</body>
+
+</html>
