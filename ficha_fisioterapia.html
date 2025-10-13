@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ficha de Evolução Fisioterapêutica</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #26503a 0%, #5fc637 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #387957 0%, #5fc637 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .form-section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            border: 2px solid #e9ecef;
+        }
+
+        .form-section h2 {
+            color: black;
+            margin-bottom: 20px;
+            font-size: 22px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #495057;
+            font-weight: 600;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #26503a 0%, #4fa32e 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px #26503a;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+            transform: translateY(-2px);
+        }
+
+        .btn-warning {
+            background: #ffc107;
+            color: #212529;
+        }
+
+        .btn-warning:hover {
+            background: #e0a800;
+            transform: translateY(-2px);
+        }
+
+        .patient-list {
+            margin-top: 30px;
+        }
+
+        .patient-card {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            transition: all 0.3s;
+        }
+
+        .patient-card:hover {
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-color: #26503a;
+        }
+
+        .patient-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .patient-name {
+            font-size: 20px;
+            font-weight: bold;
+            color: #26503a ;
+        }
+
+        .evolution-entry {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: 4px solid #26503a ;
+        }
+
+        .evolution-date {
+            font-weight: bold;
+            color: #495057;
+            margin-bottom: 5px;
+        }
+
+        .evolution-text {
+            color: #6c757d;
+        }
+
+        .fisio-signature {
+            font-style: italic;
+            color: #764ba2;
+            margin-top: 5px;
+            font-size: 14px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 30px;
+            border-radius: 15px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            margin-bottom: 20px;
+        }
+
+        .modal-header h2 {
+            color: #26503a ;
+        }
+
+        .close {
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            color: #aaa;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: #000;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📋 Ficha de Evolução Diária</h1>
+            <p>Sistema de Gestão de Pacientes</p>
+        </div>
+
+        <div class="content">
+            <div class="form-section">
+                <h2>Adicionar Novo Paciente</h2>
+                <div class="form-group">
+                    <label>Nome do Paciente:</label>
+                    <input type="text" id="patientName" placeholder="Digite o nome completo">
+                </div>
+                <button class="btn btn-primary" onclick="addPatient()">➕ Adicionar Paciente</button>
+            </div>
+
+            <div id="alertArea"></div>
+
+            <div class="patient-list">
+                <h2 style="color: #26503a; margin-bottom: 20px;">Lista de Pacientes</h2>
+                <div id="patientsList"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para adicionar evolução -->
+    <div id="evolutionModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="close" onclick="closeModal()">&times;</span>
+                <h2>Adicionar Evolução</h2>
+            </div>
+            <div class="form-group">
+                <label>Data:</label>
+                <input type="date" id="evolutionDate">
+            </div>
+            <div class="form-group">
+                <label>Condutas Realizadas e Observações:</label>
+                <textarea id="evolutionText" placeholder="Descreva as condutas realizadas e observações..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>Assinatura do Fisioterapeuta:</label>
+                <input type="text" id="fisioSignature" placeholder="Nome do fisioterapeuta">
+            </div>
+            <button class="btn btn-success" onclick="saveEvolution()">💾 Salvar Evolução</button>
+        </div>
+    </div>
+
+    <script>
+        let patients = [];
+        let currentPatientId = null;
+
+        // Carregar dados ao iniciar
+        window.onload = function() {
+            loadData();
+            renderPatients();
+        };
+
+        function loadData() {
+            const saved = localStorage.getItem('fisioterapiaData');
+            if (saved) {
+                patients = JSON.parse(saved);
+            }
+        }
+
+        function saveData() {
+            localStorage.setItem('fisioterapiaData', JSON.stringify(patients));
+        }
+
+        function showAlert(message, type = 'success') {
+            const alertArea = document.getElementById('alertArea');
+            alertArea.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+            setTimeout(() => {
+                alertArea.innerHTML = '';
+            }, 3000);
+        }
+
+        function addPatient() {
+            const name = document.getElementById('patientName').value.trim();
+            if (!name) {
+                alert('Por favor, digite o nome do paciente');
+                return;
+            }
+
+            const patient = {
+                id: Date.now(),
+                name: name,
+                evolutions: []
+            };
+
+            patients.push(patient);
+            saveData();
+            renderPatients();
+            document.getElementById('patientName').value = '';
+            showAlert('Paciente adicionado com sucesso!');
+        }
+
+        function removePatient(id) {
+            if (confirm('Tem certeza que deseja remover este paciente?')) {
+                patients = patients.filter(p => p.id !== id);
+                saveData();
+                renderPatients();
+                showAlert('Paciente removido com sucesso!');
+            }
+        }
+
+        function openEvolutionModal(id) {
+            currentPatientId = id;
+            document.getElementById('evolutionDate').valueAsDate = new Date();
+            document.getElementById('evolutionModal').style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('evolutionModal').style.display = 'none';
+            document.getElementById('evolutionText').value = '';
+            document.getElementById('fisioSignature').value = '';
+            currentPatientId = null;
+        }
+
+        function saveEvolution() {
+            const date = document.getElementById('evolutionDate').value;
+            const text = document.getElementById('evolutionText').value.trim();
+            const signature = document.getElementById('fisioSignature').value.trim();
+
+            if (!date || !text || !signature) {
+                alert('Por favor, preencha todos os campos');
+                return;
+            }
+
+            const patient = patients.find(p => p.id === currentPatientId);
+            if (patient) {
+                patient.evolutions.push({
+                    id: Date.now(),
+                    date: date,
+                    text: text,
+                    signature: signature
+                });
+                saveData();
+                renderPatients();
+                closeModal();
+                showAlert('Evolução adicionada com sucesso!');
+            }
+        }
+
+        function removeEvolution(patientId, evolutionId) {
+            if (confirm('Tem certeza que deseja remover esta evolução?')) {
+                const patient = patients.find(p => p.id === patientId);
+                if (patient) {
+                    patient.evolutions = patient.evolutions.filter(e => e.id !== evolutionId);
+                    saveData();
+                    renderPatients();
+                    showAlert('Evolução removida com sucesso!');
+                }
+            }
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString + 'T00:00:00');
+            return date.toLocaleDateString('pt-BR');
+        }
+
+        function generatePDF(patientId) {
+            const patient = patients.find(p => p.id === patientId);
+            if (!patient) return;
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            // Título
+            doc.setFontSize(16);
+            doc.setFont(undefined, 'bold');
+            doc.text('FICHA DE EVOLUÇÃO DIÁRIA DE ATENDIMENTO FISIOTERAPÊUTICO', 105, 20, { align: 'center' });
+
+            // Nome do paciente
+            doc.setFontSize(12);
+            doc.text(`Nome do paciente: ${patient.name}`, 20, 35);
+
+            let yPosition = 50;
+
+            // Evoluções
+            patient.evolutions.forEach((evolution, index) => {
+                if (yPosition > 250) {
+                    doc.addPage();
+                    yPosition = 20;
+                }
+
+                doc.setFont(undefined, 'bold');
+                doc.text(`DATA: ${formatDate(evolution.date)}`, 20, yPosition);
+                yPosition += 7;
+
+                doc.setFont(undefined, 'bold');
+                doc.text('CONDUTAS REALIZADAS e OBSERVAÇÕES', 20, yPosition);
+                yPosition += 7;
+
+                doc.setFont(undefined, 'normal');
+                const textLines = doc.splitTextToSize(evolution.text, 170);
+                doc.text(textLines, 20, yPosition);
+                yPosition += (textLines.length * 7);
+
+                yPosition += 5;
+                doc.setFont(undefined, 'italic');
+                doc.text(`ASSINATURA DO FISIOTERAPEUTA: ${evolution.signature}`, 20, yPosition);
+                yPosition += 15;
+
+                // Linha separadora
+                if (index < patient.evolutions.length - 1) {
+                    doc.line(20, yPosition, 190, yPosition);
+                    yPosition += 10;
+                }
+            });
+
+            doc.save(`Ficha_${patient.name.replace(/ /g, '_')}.pdf`);
+        }
+
+        function renderPatients() {
+            const container = document.getElementById('patientsList');
+            
+            if (patients.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #6c757d;">Nenhum paciente cadastrado ainda.</p>';
+                return;
+            }
+
+            container.innerHTML = patients.map(patient => `
+                <div class="patient-card">
+                    <div class="patient-header">
+                        <div class="patient-name">👤 ${patient.name}</div>
+                        <div class="action-buttons">
+                            <button class="btn btn-success" onclick="openEvolutionModal(${patient.id})">➕ Nova Evolução</button>
+                            <button class="btn btn-warning" onclick="generatePDF(${patient.id})">📄 Gerar PDF</button>
+                            <button class="btn btn-danger" onclick="removePatient(${patient.id})">🗑️ Remover</button>
+                        </div>
+                    </div>
+                    <div>
+                        ${patient.evolutions.length === 0 ? 
+                            '<p style="color: #6c757d; font-style: italic;">Nenhuma evolução registrada ainda.</p>' :
+                            patient.evolutions.map(evolution => `
+                                <div class="evolution-entry">
+                                    <div class="evolution-date">📅 ${formatDate(evolution.date)}</div>
+                                    <div class="evolution-text">${evolution.text}</div>
+                                    <div class="fisio-signature">✍️ ${evolution.signature}</div>
+                                    <button class="btn btn-danger" style="margin-top: 10px; padding: 8px 15px; font-size: 14px;" onclick="removeEvolution(${patient.id}, ${evolution.id})">🗑️ Remover Evolução</button>
+                                </div>
+                            `).join('')
+                        }
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Fechar modal ao clicar fora
+        window.onclick = function(event) {
+            const modal = document.getElementById('evolutionModal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        };
+    </script>
+</body>
+</html>
