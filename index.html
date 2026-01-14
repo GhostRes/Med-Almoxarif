@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Controle Interno</title>
+</head>
+
+<body>
+
+    <h2>Login</h2>
+    <input id="email" placeholder="Email">
+    <input id="senha" type="password" placeholder="Senha">
+    <button onclick="login()">Entrar</button>
+
+    <hr>
+
+    <h2>Novo Registro</h2>
+    <input id="texto" placeholder="Descrição">
+    <button onclick="salvar()">Salvar</button>
+
+    <ul id="lista"></ul>
+
+    <script type="module">
+
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+        // TODO: Add SDKs for Firebase products that you want to use
+        // https://firebase.google.com/docs/web/setup#available-libraries
+
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyACgr43yAZLOM14FcVF_gcwYu4DXOXL1mI",
+            authDomain: "controle-interno-14d90.firebaseapp.com",
+            projectId: "controle-interno-14d90",
+            storageBucket: "controle-interno-14d90.firebasestorage.app",
+            messagingSenderId: "876741691671",
+            appId: "1:876741691671:web:5da247c416e9b90183cf52"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+
+        async function login() {
+            await signInWithEmailAndPassword(
+                auth,
+                email.value,
+                senha.value
+            );
+            carregar();
+        }
+
+        async function salvar() {
+            await addDoc(collection(db, "registros"), {
+                texto: texto.value,
+                data: new Date()
+            });
+            carregar();
+        }
+
+        async function carregar() {
+            lista.innerHTML = "";
+            const dados = await getDocs(collection(db, "registros"));
+            dados.forEach(doc => {
+                lista.innerHTML += `<li>${doc.data().texto}</li>`;
+            });
+        }
+    </script>
+
+</body>
+
+</html>
