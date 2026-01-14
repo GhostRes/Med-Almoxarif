@@ -1,72 +1,114 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-
 <head>
-    <meta charset="UTF-8">
-    <title>Controle Interno</title>
+  <meta charset="UTF-8">
+  <title>Controle de Clientes</title>
 </head>
-
 <body>
 
-    <h2>Login</h2>
-    <input id="email" placeholder="Email">
-    <input id="senha" type="password" placeholder="Senha">
-    <button onclick="login()">Entrar</button>
+<h2>Login</h2>
+<input id="email" placeholder="Email">
+<input id="senha" type="password" placeholder="Senha">
+<button onclick="login()">Entrar</button>
 
-    <hr>
+<hr>
 
-    <h2>Novo Registro</h2>
-    <input id="texto" placeholder="Descrição">
-    <button onclick="salvar()">Salvar</button>
+<div id="app"></div>
 
-    <ul id="lista"></ul>
+<script type="module">
+  // 🔥 IMPORTAÇÕES FIREBASE (CDN)
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+  import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } 
+    from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+  import { getFirestore, collection, addDoc, getDocs, doc, getDoc } 
+    from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    <script type="module">
+  // 🔑 CONFIGURAÇÃO DO SEU FIREBASE
+  const firebaseConfig = {
+    apiKey: "SUA_API_KEY",
+    authDomain: "SEU_PROJETO.firebaseapp.com",
+    projectId: "SEU_PROJETO",
+    storageBucket: "SEU_PROJETO.appspot.com",
+    messagingSenderId: "SEU_ID",
+    appId: "SEU_APP_ID"
+  };
 
-        // Import the functions you need from the SDKs you need
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
-        // TODO: Add SDKs for Firebase products that you want to use
-        // https://firebase.google.com/docs/web/setup#available-libraries
+  // 🚀 INICIALIZAÇÃO
+  const appFirebase = initializeApp(firebaseConfig);
+  const auth = getAuth(appFirebase);
+  const db = getFirestore(appFirebase);
 
-        // Your web app's Firebase configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyACgr43yAZLOM14FcVF_gcwYu4DXOXL1mI",
-            authDomain: "controle-interno-14d90.firebaseapp.com",
-            projectId: "controle-interno-14d90",
-            storageBucket: "controle-interno-14d90.firebasestorage.app",
-            messagingSenderId: "876741691671",
-            appId: "1:876741691671:web:5da247c416e9b90183cf52"
-        };
+  const appDiv = document.getElementById("app");
 
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
+  // 🔐 LOGIN
+  window.login = async function () {
+    await signInWithEmailAndPassword(
+      auth,
+      email.value,
+      senha.value
+    );
+  };
 
-        async function login() {
-            await signInWithEmailAndPassword(
-                auth,
-                email.value,
-                senha.value
-            );
-            carregar();
-        }
+  // 👤 VERIFICA USUÁRIO LOGADO
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) return;
 
-        async function salvar() {
-            await addDoc(collection(db, "registros"), {
-                texto: texto.value,
-                data: new Date()
-            });
-            carregar();
-        }
+    const ref = doc(db, "usuarios", user.uid);
+    const snap = await getDoc(ref);
 
-        async function carregar() {
-            lista.innerHTML = "";
-            const dados = await getDocs(collection(db, "registros"));
-            dados.forEach(doc => {
-                lista.innerHTML += `<li>${doc.data().texto}</li>`;
-            });
-        }
-    </script>
+    if (!snap.exists()) {
+      appDiv.innerHTML = "<p>Usuário sem permissão.</p>";
+      return;
+    }
+
+    const tipo = snap.data().tipo;
+
+    if (tipo === "admin") {
+      telaAdmin();
+    } else {
+      telaUsuario();
+    }
+  });
+
+  // 👤 TELA USUÁRIO COMUM
+  function telaUsuario() {
+    appDiv.innerHTML = `
+      <h3>Cadastro de Cliente</h3>
+      <input id="nome" placeholder="Nome do cliente"><br><br>
+      <input id="telefone" placeholder="Telefone"><br><br>
+      <button onclick="salvarCliente()">Salvar</button>
+    `;
+  }
+
+  // 👑 TELA ADMIN
+  async function telaAdmin() {
+    appDiv.innerHTML = `
+      <h3>Clientes Cadastrados</h3>
+      <ul id="lista"></ul>
+    `;
+
+    const lista = document.getElementById("lista");
+    const clientes = await getDocs(collection(db, "clientes"));
+
+    clientes.forEach(doc => {
+      const c = doc.data();
+      lista.innerHTML += `<li>${c.nome} - ${c.telefone}</li>`;
+    });
+  }
+
+  // 💾 SALVAR CLIENTE
+  window.salvarCliente = async function () {
+    await addDoc(collection(db, "clientes"), {
+      nome: nome.value,
+      telefone: telefone.value,
+      data: new Date()
+    });
+
+    alert("Cliente cadastrado com sucesso!");
+    nome.value = "";
+    telefone.value = "";
+  };
+</script>
 
 </body>
-
 </html>
