@@ -4,20 +4,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Clientes</title>
+    <title>Sistema de Clientes - Firebase</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
 <body>
     <div id="root"></div>
 
-    <script>
-        // Import the functions you need from the SDKs you need
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
-        // TODO: Add SDKs for Firebase products that you want to use
-        // https://firebase.google.com/docs/web/setup#available-libraries
+    <!-- Firebase SDK -->
+    <script type="module">
+        // Importar Firebase
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, query, orderBy } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
-        // Your web app's Firebase configuration
+        // ⚠️ COLE AQUI SUAS CONFIGURAÇÕES DO FIREBASE ⚠️
         const firebaseConfig = {
             apiKey: "AIzaSyACgr43yAZLOM14FcVF_gcwYu4DXOXL1mI",
             authDomain: "controle-interno-14d90.firebaseapp.com",
@@ -27,8 +28,10 @@
             appId: "1:876741691671:web:180ba3b6d474774983cf52"
         };
 
-        // Initialize Firebase
+        // Inicializar Firebase
         const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
 
         // SVG Icons
         const Icons = {
@@ -49,15 +52,36 @@
         let editNome = '';
         let editCpf = '';
 
-        // Carregar clientes do localStorage
-        function loadClientes() {
-            const saved = localStorage.getItem('clientes');
-            clientes = saved ? JSON.parse(saved) : [];
-        }
+        // Listener de autenticação do Firebase
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                // Verificar se é admin pelo email
+                const role = user.email.includes('admin') ? 'admin' : 'user';
+                currentUser = { email: user.email, uid: user.uid, role };
+                await loadClientes();
+                renderApp();
+            } else {
+                currentUser = null;
+                clientes = [];
+                renderApp();
+            }
+        });
 
-        // Salvar clientes no localStorage
-        function saveClientesData() {
-            localStorage.setItem('clientes', JSON.stringify(clientes));
+        // Carregar clientes do Firestore
+        async function loadClientes() {
+            try {
+                const q = query(collection(db, 'clientes'), orderBy('timestamp', 'desc'));
+                const querySnapshot = await getDocs(q);
+                clientes = [];
+                querySnapshot.forEach((doc) => {
+                    clientes.push({
+                        id: doc.id,
+                        ...doc.data()
+                    });
+                });
+            } catch (error) {
+                console.error('Erro ao carregar clientes:', error);
+            }
         }
 
         // Formatar CPF
@@ -72,95 +96,127 @@
             return value;
         }
 
-        // Login
-        function handleLogin() {
+        // Login com Firebase Authentication
+        window.handleLogin = async () => {
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
 
             if (email && password) {
-                const role = email.includes('admin') ? 'admin' : 'user';
-                currentUser = { email, role };
-                renderApp();
+                try {
+                    await signInWithEmailAndPassword(auth, email, password);
+                    // O onAuthStateChanged vai lidar com o resto
+                } catch (error) {
+                    if (error.code === 'auth/invalid-credential') {
+                        alert('Email ou senha incorretos');
+                    } else if (error.code === 'auth/user-not-found') {
+                        alert('Usuário não encontrado');
+                    } else if (error.code === 'auth/wrong-password') {
+                        alert('Senha incorreta');
+                    } else {
+                        alert('Erro ao fazer login: ' + error.message);
+                    }
+                }
             }
-        }
+        };
 
         // Logout
-        function handleLogout() {
-            currentUser = null;
-            renderApp();
-        }
+        window.handleLogout = async () => {
+            try {
+                await signOut(auth);
+            } catch (error) {
+                console.error('Erro ao fazer logout:', error);
+            }
+        };
 
-        // Adicionar cliente
-        function handleAddCliente() {
+        // Adicionar cliente no Firestore
+        window.handleAddCliente = async () => {
             const nome = document.getElementById('nome').value;
             const cpf = document.getElementById('cpf').value;
 
             if (nome && cpf) {
-                const newCliente = {
-                    id: Date.now(),
-                    nome,
-                    cpf,
-                    criadoPor: currentUser.email,
-                    dataHora: new Date().toLocaleString('pt-BR')
-                };
-                clientes.push(newCliente);
-                saveClientesData();
-                document.getElementById('nome').value = '';
-                document.getElementById('cpf').value = '';
-                renderApp();
-            }
-        }
+                try {
+                    await addDoc(collection(db, 'clientes'), {
+                        nome,
+                        cpf,
+                        criadoPor: currentUser.email,
+                        dataHora: new Date().toLocaleString('pt-BR'),
+                        timestamp: new Date()
+                    });
 
-        // Deletar cliente
-        function handleDelete(id) {
-            if (currentUser.role === 'admin') {
-                clientes = clientes.filter(c => c.id !== id);
-                saveClientesData();
-                renderApp();
+                    document.getElementById('nome').value = '';
+                    document.getElementById('cpf').value = '';
+                    await loadClientes();
+                    renderApp();
+                } catch (error) {
+                    console.error('Erro ao adicionar cliente:', error);
+                    alert('Erro ao adicionar cliente. Verifique as permissões do Firestore.');
+                }
             }
-        }
+        };
+
+        // Deletar cliente do Firestore
+        window.handleDelete = async (id) => {
+            if (currentUser.role === 'admin') {
+                if (confirm('Tem certeza que deseja deletar este cliente?')) {
+                    try {
+                        await deleteDoc(doc(db, 'clientes', id));
+                        await loadClientes();
+                        renderApp();
+                    } catch (error) {
+                        console.error('Erro ao deletar cliente:', error);
+                        alert('Erro ao deletar cliente. Verifique as permissões do Firestore.');
+                    }
+                }
+            }
+        };
 
         // Iniciar edição
-        function startEdit(id, nome, cpf) {
+        window.startEdit = (id, nome, cpf) => {
             editingId = id;
             editNome = nome;
             editCpf = cpf;
             renderApp();
-        }
+        };
 
         // Cancelar edição
-        function cancelEdit() {
+        window.cancelEdit = () => {
             editingId = null;
             editNome = '';
             editCpf = '';
             renderApp();
-        }
+        };
 
-        // Salvar edição
-        function saveEdit(id) {
+        // Salvar edição no Firestore
+        window.saveEdit = async (id) => {
             const nome = document.getElementById('edit-nome-' + id).value;
             const cpf = document.getElementById('edit-cpf-' + id).value;
 
             if (nome && cpf) {
-                clientes = clientes.map(c =>
-                    c.id === id ? { ...c, nome, cpf } : c
-                );
-                saveClientesData();
-                editingId = null;
-                editNome = '';
-                editCpf = '';
-                renderApp();
+                try {
+                    await updateDoc(doc(db, 'clientes', id), {
+                        nome,
+                        cpf
+                    });
+                    editingId = null;
+                    editNome = '';
+                    editCpf = '';
+                    await loadClientes();
+                    renderApp();
+                } catch (error) {
+                    console.error('Erro ao atualizar cliente:', error);
+                    alert('Erro ao atualizar cliente. Verifique as permissões do Firestore.');
+                }
             }
-        }
+        };
 
         // Atualizar campo de edição
-        function updateEditField(field, value) {
+        window.updateEditField = (field, value) => {
             if (field === 'nome') {
                 editNome = value;
             } else if (field === 'cpf') {
                 editCpf = formatCPF(value);
             }
-        }
+        };
 
         // Renderizar aplicação
         function renderApp() {
@@ -209,10 +265,8 @@
                             </div>
 
                             <div class="mt-6 p-4 bg-gray-50 rounded-lg text-sm">
-                                <p class="font-semibold text-gray-700 mb-2">Usuários de teste:</p>
-                                <p class="text-gray-600">👤 Admin: admin@sistema.com</p>
-                                <p class="text-gray-600">👤 Usuário: user@sistema.com</p>
-                                <p class="text-gray-500 mt-2 text-xs">Qualquer senha funciona neste protótipo</p>
+                                <p class="font-semibold text-gray-700 mb-2">🔥 Agora usando Firebase!</p>
+                                <p class="text-gray-600 text-xs">Você precisa ter criado usuários no Firebase Authentication</p>
                             </div>
                         </div>
                     </div>
@@ -260,7 +314,7 @@
                             <td class="px-6 py-4">
                                 ${editingId === cliente.id ? `
                                     <div class="flex gap-2">
-                                        <button onclick="saveEdit(${cliente.id})" class="p-1 text-green-600 hover:text-green-800">
+                                        <button onclick="saveEdit('${cliente.id}')" class="p-1 text-green-600 hover:text-green-800">
                                             ${Icons.Save}
                                         </button>
                                         <button onclick="cancelEdit()" class="p-1 text-gray-600 hover:text-gray-800">
@@ -269,10 +323,10 @@
                                     </div>
                                 ` : `
                                     <div class="flex gap-2">
-                                        <button onclick="startEdit(${cliente.id}, '${cliente.nome}', '${cliente.cpf}')" class="p-1 text-blue-600 hover:text-blue-800">
+                                        <button onclick="startEdit('${cliente.id}', '${cliente.nome.replace(/'/g, "\\'")}', '${cliente.cpf}')" class="p-1 text-blue-600 hover:text-blue-800">
                                             ${Icons.Edit2}
                                         </button>
-                                        <button onclick="handleDelete(${cliente.id})" class="p-1 text-red-600 hover:text-red-800">
+                                        <button onclick="handleDelete('${cliente.id}')" class="p-1 text-red-600 hover:text-red-800">
                                             ${Icons.Trash2}
                                         </button>
                                     </div>
@@ -291,7 +345,7 @@
                                         ${Icons.Users}
                                     </div>
                                     <div>
-                                        <h1 class="text-2xl font-bold text-gray-800">Gestão de Clientes</h1>
+                                        <h1 class="text-2xl font-bold text-gray-800">Gestão de Clientes 🔥</h1>
                                         <p class="text-sm text-gray-600">${currentUser.email} - ${currentUser.role === 'admin' ? 'Administrador' : 'Usuário'}</p>
                                     </div>
                                 </div>
@@ -384,8 +438,7 @@
             }
         }
 
-        // Inicializar app
-        loadClientes();
+        // Renderizar app inicial
         renderApp();
     </script>
 </body>
