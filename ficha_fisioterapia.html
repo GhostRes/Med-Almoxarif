@@ -802,9 +802,6 @@
       const contact = document.getElementById('patientContact').value.trim();
       if (!name) { toast('Digite o nome do paciente.', 'error'); return; }
 
-      const dup = patients.find(p => p.name.toLowerCase() === name.toLowerCase());
-      if (dup) { toast('Já existe um paciente com este nome.', 'error'); return; }
-
       // id sempre string para compatibilidade com Firestore
       const patient = { id: String(Date.now()), name, contact, evolutions: [] };
       patients.push(patient);
