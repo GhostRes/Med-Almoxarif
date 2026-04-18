@@ -680,10 +680,18 @@
       return window.USE_FIREBASE === true && window._fb;
     }
 
-    const DB = {
+      const DB = {
       async load() {
         if (isFirebase()) {
-          try { return await window._fb.loadAll(); }
+          try {
+            const data = await window._fb.loadAll();
+            // Normaliza ids para string (Firestore salva como string)
+            return data.map(p => ({
+              ...p,
+              id: String(p.id),
+              evolutions: (p.evolutions || []).map(e => ({ ...e, id: String(e.id) }))
+            }));
+          }
           catch(e) { showFbError(e); return []; }
         }
         return JSON.parse(localStorage.getItem('fisioterapiaData') || '[]');
@@ -700,14 +708,12 @@
           try { await window._fb.savePatient(patient); return; }
           catch(e) { showFbError(e); return; }
         }
-        // localStorage: save all (handled by caller passing full array)
       },
       async remove(id) {
         if (isFirebase()) {
           try { await window._fb.deletePatient(id); return; }
           catch(e) { showFbError(e); return; }
         }
-        // localStorage: handled by filtering + save() no caller
       }
     };
 
@@ -799,7 +805,8 @@
       const dup = patients.find(p => p.name.toLowerCase() === name.toLowerCase());
       if (dup) { toast('Já existe um paciente com este nome.', 'error'); return; }
 
-      const patient = { id: Date.now(), name, contact, evolutions: [] };
+      // id sempre string para compatibilidade com Firestore
+      const patient = { id: String(Date.now()), name, contact, evolutions: [] };
       patients.push(patient);
       await DB.save(patients);
       renderPatients();
@@ -809,10 +816,11 @@
     }
 
     async function removePatient(id) {
+      const sid = String(id);
       const ok = await openConfirm('Remover paciente', 'Todos os dados e evoluções deste paciente serão excluídos permanentemente.');
       if (!ok) return;
-      patients = patients.filter(p => p.id !== id);
-      await DB.remove(id);
+      patients = patients.filter(p => String(p.id) !== sid);
+      await DB.remove(sid);
       await DB.save(patients);
       renderPatients();
       toast('Paciente removido.');
@@ -822,7 +830,7 @@
     // MODAL DE EVOLUÇÃO
     // ============================================================
     function openEvolutionModal(id) {
-      currentPatientId = id;
+      currentPatientId = String(id);
       document.getElementById('evolutionDate').valueAsDate = new Date();
       document.getElementById('evolutionModalOverlay').classList.add('active');
     }
@@ -840,27 +848,29 @@
       const signature = document.getElementById('fisioSignature').value.trim();
       if (!date || !text || !signature) { toast('Preencha todos os campos.', 'error'); return; }
 
-      const patient = patients.find(p => p.id === currentPatientId);
-      if (!patient) return;
+      const patient = patients.find(p => String(p.id) === String(currentPatientId));
+      if (!patient) { toast('Paciente não encontrado.', 'error'); return; }
 
-      patient.evolutions.push({ id: Date.now(), date, text, signature });
-      // Ordena sempre por data desc ao salvar
+      patient.evolutions = patient.evolutions || [];
+      patient.evolutions.push({ id: String(Date.now()), date, text, signature });
       patient.evolutions.sort((a, b) => b.date.localeCompare(a.date));
 
       await DB.save(patients);
-      renderPatients(true, currentPatientId);
+      renderPatients(true, String(currentPatientId));
       closeModal();
       toast('Evolução registrada!');
     }
 
     async function removeEvolution(patientId, evolutionId) {
+      const spid = String(patientId);
+      const seid = String(evolutionId);
       const ok = await openConfirm('Remover evolução', 'Esta evolução será excluída permanentemente.');
       if (!ok) return;
-      const patient = patients.find(p => p.id === patientId);
+      const patient = patients.find(p => String(p.id) === spid);
       if (patient) {
-        patient.evolutions = patient.evolutions.filter(e => e.id !== evolutionId);
+        patient.evolutions = patient.evolutions.filter(e => String(e.id) !== seid);
         await DB.save(patients);
-        renderPatients(true, patientId);
+        renderPatients(true, spid);
         toast('Evolução removida.');
       }
     }
@@ -891,16 +901,17 @@
       }
 
       container.innerHTML = filtered.map(patient => {
-        const isOpen = keepOpen && patient.id === openId;
-        const count  = patient.evolutions.length;
+        const isOpen = keepOpen && String(patient.id) === String(openId);
+        const count  = (patient.evolutions || []).length;
+        const plural = count === 1 ? 'evolução' : 'evoluções';
 
         const evols = count === 0
           ? `<div class="no-evolutions">Nenhuma evolução registrada ainda.</div>`
-          : patient.evolutions.map(ev => `
+          : (patient.evolutions || []).map(ev => `
               <div class="evolution-entry">
                 <div class="evolution-header">
                   <div class="evolution-date">📅 ${esc(formatDate(ev.date))}</div>
-                  <button class="btn btn-danger" onclick="removeEvolution(${patient.id}, ${ev.id})">🗑 Remover</button>
+                  <button class="btn btn-danger" onclick="removeEvolution('${patient.id}', '${ev.id}')">🗑 Remover</button>
                 </div>
                 <div class="evolution-text">${esc(ev.text)}</div>
                 <div class="evolution-signature">✍️ ${esc(ev.signature)}</div>
@@ -908,18 +919,18 @@
 
         return `
           <div class="patient-card ${isOpen ? 'open' : ''}" id="pcard-${patient.id}">
-            <div class="patient-card-header" onclick="toggleCard(${patient.id})">
+            <div class="patient-card-header" onclick="toggleCard('${patient.id}')">
               <div class="patient-info">
                 <div class="patient-name">👤 ${esc(patient.name)}</div>
                 <div class="patient-meta">${patient.contact ? '📞 ' + esc(patient.contact) : 'Sem contato informado'}</div>
               </div>
               <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
                 <div class="patient-actions" onclick="event.stopPropagation()">
-                  <button class="btn btn-success" onclick="openEvolutionModal(${patient.id})">➕ Nova Evolução</button>
-                  <button class="btn btn-pdf"     onclick="generatePDF(${patient.id})">📄 PDF</button>
-                  <button class="btn btn-danger"  onclick="removePatient(${patient.id})">🗑 Remover</button>
+                  <button class="btn btn-success" onclick="openEvolutionModal('${patient.id}')">➕ Nova Evolução</button>
+                  <button class="btn btn-pdf"     onclick="generatePDF('${patient.id}')">📄 PDF</button>
+                  <button class="btn btn-danger"  onclick="removePatient('${patient.id}')">🗑 Remover</button>
                 </div>
-                <span class="patient-count">${count} evolução${count !== 1 ? 'ões' : ''}</span>
+                <span class="patient-count">${count} ${plural}</span>
                 <span class="chevron">▼</span>
               </div>
             </div>
@@ -949,9 +960,9 @@
     // GERAÇÃO DE PDF — qualidade aprimorada
     // ============================================================
     function generatePDF(patientId) {
-      const patient = patients.find(p => p.id === patientId);
+      const patient = patients.find(p => String(p.id) === String(patientId));
       if (!patient) return;
-      if (patient.evolutions.length === 0) { toast('Nenhuma evolução para exportar.', 'error'); return; }
+      if (!patient.evolutions || patient.evolutions.length === 0) { toast('Nenhuma evolução para exportar.', 'error'); return; }
 
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
